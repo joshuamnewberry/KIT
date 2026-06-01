@@ -1,49 +1,76 @@
 package edu.gvsu.cis.kit
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import org.jetbrains.compose.resources.painterResource
-
-import kit.shared.generated.resources.Res
-import kit.shared.generated.resources.compose_multiplatform
+import androidx.compose.runtime.Composable
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import edu.gvsu.cis.kit.ui.CalendarScreen
+import edu.gvsu.cis.kit.ui.ContactListScreen
+import org.koin.compose.viewmodel.koinViewModel
+import edu.gvsu.cis.kit.ui.HomeScreen
+import edu.gvsu.cis.kit.ui.IndividualContactScreen
+import edu.gvsu.cis.kit.ui.ManageRemindersScreen
+import edu.gvsu.cis.kit.ui.SettingsScreen
+import edu.gvsu.cis.kit.viewModels.CalendarViewModel
+import edu.gvsu.cis.kit.viewModels.ContactsViewModel
+import edu.gvsu.cis.kit.viewModels.HomeViewModel
 
 @Composable
-@Preview
 fun App() {
-    MaterialTheme {
-        var showContent by remember { mutableStateOf(false) }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.primaryContainer)
-                .safeContentPadding()
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Button(onClick = { showContent = !showContent }) {
-                Text("Click me!")
-            }
-            AnimatedVisibility(showContent) {
-                val greeting = remember { Greeting().greet() }
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Image(painterResource(Res.drawable.compose_multiplatform), null)
-                    Text("Compose: $greeting")
-                }
-            }
+    val navController = rememberNavController()
+
+    NavHost(navController = navController, startDestination = "home") {
+
+        composable("home") {
+            val viewModel = koinViewModel<HomeViewModel>()
+            HomeScreen(
+                viewModel = viewModel,
+                onNavigateToSettings = { navController.navigate("settings") },
+                onNavigateToContactList = { navController.navigate("contact list") },
+                onNavigateToCalendar = { navController.navigate("calendar") }
+            )
+        }
+
+        composable("settings") {
+            val viewModel = koinViewModel<HomeViewModel>()
+            SettingsScreen(
+                viewModel = viewModel,
+                onBack = { navController.navigate("home") }
+            )
+        }
+
+        composable("contact list") {
+            val viewModel = koinViewModel<ContactsViewModel>()
+            ContactListScreen(
+                viewModel = viewModel,
+                onNavigateToIndividualContact = { navController.navigate("individual contact") },
+                onBack = { navController.navigate("home") }
+            )
+        }
+
+        composable("individual contact") {
+            val viewModel = koinViewModel<ContactsViewModel>()
+            IndividualContactScreen(
+                viewModel = viewModel,
+                onNavigateToHome = { navController.navigate("home") },
+                onBack = { navController.navigate("contact list") }
+            )
+        }
+
+        composable("calendar") {
+            val viewModel = koinViewModel<CalendarViewModel>()
+            CalendarScreen(
+                viewModel = viewModel,
+                onBack = { navController.navigate("home") }
+            )
+        }
+
+        composable("contact list") {
+            val viewModel = koinViewModel<CalendarViewModel>()
+            ManageRemindersScreen(
+                viewModel = viewModel,
+                onBack = { navController.navigate("home") }
+            )
         }
     }
 }
