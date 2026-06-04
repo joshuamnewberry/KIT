@@ -1,45 +1,29 @@
-package edu.gvsu.cis.kit.data
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
+import edu.gvsu.cis.kit.data.AppDB
+import edu.gvsu.cis.kit.data.getDatabaseInstance
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
 
-enum class ReminderFrequency {
-    WEEKLY,
-    MONTHLY,
-    QUARTERLY
+        val db: AppDB = getDatabaseInstance(getDatabaseBuilder(applicationContext))
+        val dao = db.getDao()
+
+        initKoin(dao)
+
+        setContent {
+            App()
+        }
+    }
 }
 
-enum class ImportantDateType {
-    BIRTHDAY,
-    ANNIVERSARY,
-    CUSTOM
+@Preview
+@Composable
+fun AppAndroidPreview() {
+    App()
 }
-
-@Entity(tableName = "contacts")
-data class Contact(
-    @PrimaryKey val id: String,
-    val name: String,
-    val phoneNumber: String? = null,
-    val email: String? = null,
-    val relationshipType: String? = null,
-    val lastContactedDate: Long? = null
-)
-
-@Entity(tableName = "check_in_reminders")
-data class CheckInReminder(
-    @PrimaryKey val id: String,
-    val contactId: String,
-    val frequency: String,
-    val nextReminderDate: Long,
-    val isCompleted: Boolean = false
-)
-
-@Entity(tableName = "important_dates")
-data class ImportantDate(
-    @PrimaryKey val id: String,
-    val contactId: String,
-    val title: String,
-    val type: String,
-    val dateMillis: Long,
-    val repeatsEveryYear: Boolean = true
-)
