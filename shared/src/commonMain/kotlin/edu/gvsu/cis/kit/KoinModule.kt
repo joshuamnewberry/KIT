@@ -1,24 +1,45 @@
-package edu.gvsu.cis.kit
+package edu.gvsu.cis.kit.data
 
-import edu.gvsu.cis.kit.data.AppDAO
-import edu.gvsu.cis.kit.viewModels.CalendarViewModel
-import edu.gvsu.cis.kit.viewModels.ContactsViewModel
-import edu.gvsu.cis.kit.viewModels.HomeViewModel
-import org.koin.core.context.startKoin
-import org.koin.dsl.module
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-fun appModule(dao: AppDAO) = module {
-    single<AppDAO> { dao }
-
-    factory { HomeViewModel(get()) }
-    factory { ContactsViewModel(get()) }
-    factory { CalendarViewModel(get()) }
+enum class ReminderFrequency {
+    WEEKLY,
+    MONTHLY,
+    QUARTERLY
 }
 
-fun initKoin(dao: AppDAO) {
-    try {
-        startKoin {
-            modules(appModule(dao))
-        }
-    } catch (_: Exception) { }
+enum class ImportantDateType {
+    BIRTHDAY,
+    ANNIVERSARY,
+    CUSTOM
 }
+
+@Entity(tableName = "contacts")
+data class Contact(
+    @PrimaryKey val id: String,
+    val name: String,
+    val phoneNumber: String? = null,
+    val email: String? = null,
+    val relationshipType: String? = null,
+    val lastContactedDate: Long? = null
+)
+
+@Entity(tableName = "check_in_reminders")
+data class CheckInReminder(
+    @PrimaryKey val id: String,
+    val contactId: String,
+    val frequency: String,
+    val nextReminderDate: Long,
+    val isCompleted: Boolean = false
+)
+
+@Entity(tableName = "important_dates")
+data class ImportantDate(
+    @PrimaryKey val id: String,
+    val contactId: String,
+    val title: String,
+    val type: String,
+    val dateMillis: Long,
+    val repeatsEveryYear: Boolean = true
+)
