@@ -1,29 +1,24 @@
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import edu.gvsu.cis.kit.data.AppDB
-import edu.gvsu.cis.kit.data.getDatabaseInstance
+package edu.gvsu.cis.kit
 
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
+import edu.gvsu.cis.kit.data.AppDAO
+import edu.gvsu.cis.kit.viewModels.CalendarViewModel
+import edu.gvsu.cis.kit.viewModels.ContactsViewModel
+import edu.gvsu.cis.kit.viewModels.HomeViewModel
+import org.koin.core.context.startKoin
+import org.koin.dsl.module
 
-        val db: AppDB = getDatabaseInstance(getDatabaseBuilder(applicationContext))
-        val dao = db.getDao()
+fun appModule(dao: AppDAO) = module {
+    single<AppDAO> { dao }
 
-        initKoin(dao)
-
-        setContent {
-            App()
-        }
-    }
+    factory { HomeViewModel(get()) }
+    factory { ContactsViewModel(get()) }
+    factory { CalendarViewModel(get()) }
 }
 
-@Preview
-@Composable
-fun AppAndroidPreview() {
-    App()
+fun initKoin(dao: AppDAO) {
+    try {
+        startKoin {
+            modules(appModule(dao))
+        }
+    } catch (_: Exception) { }
 }
