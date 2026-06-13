@@ -7,12 +7,20 @@ struct ComposeView: UIViewControllerRepresentable {
         MainViewControllerKt.MainViewController()
     }
 
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
+    func updateUIViewController(
+        _ uiViewController: UIViewController,
+        context: Context
+    ) {
+        // No update needed for Compose view
+    }
 }
 
 struct ContentView: View {
     var body: some View {
         ComposeView()
             .ignoresSafeArea()
+            .onAppear {
+                IOSNotificationManager.shared.requestPermission()
+            }
     }
 }
