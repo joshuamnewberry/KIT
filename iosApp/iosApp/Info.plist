@@ -4,5 +4,9 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+
+	<key>NSUserNotificationUsageDescription</key>
+	<string>KeepInTouch uses notifications to remind you to stay connected with important people.</string>
+
 </dict>
 </plist>
