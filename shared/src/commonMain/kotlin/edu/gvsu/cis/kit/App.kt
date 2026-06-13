@@ -6,69 +6,62 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import edu.gvsu.cis.kit.ui.CalendarScreen
 import edu.gvsu.cis.kit.ui.ContactListScreen
-import org.koin.compose.viewmodel.koinViewModel
 import edu.gvsu.cis.kit.ui.HomeScreen
 import edu.gvsu.cis.kit.ui.IndividualContactScreen
 import edu.gvsu.cis.kit.ui.ManageRemindersScreen
 import edu.gvsu.cis.kit.ui.SettingsScreen
-import edu.gvsu.cis.kit.viewModels.CalendarViewModel
-import edu.gvsu.cis.kit.viewModels.ContactsViewModel
-import edu.gvsu.cis.kit.viewModels.HomeViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun App() {
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home") {
-
+    NavHost(
+        navController = navController,
+        startDestination = "home"
+    ) {
         composable("home") {
-            val viewModel = koinViewModel<HomeViewModel>()
             HomeScreen(
-                viewModel = viewModel,
+                viewModel = koinViewModel(),
                 onNavigateToSettings = { navController.navigate("settings") },
-                onNavigateToContactList = { navController.navigate("contact list") },
+                onNavigateToContactList = { navController.navigate("contactList") },
                 onNavigateToCalendar = { navController.navigate("calendar") }
             )
         }
 
         composable("settings") {
-            val viewModel = koinViewModel<HomeViewModel>()
             SettingsScreen(
-                viewModel = viewModel,
+                viewModel = koinViewModel(),
                 onBack = { navController.navigate("home") }
             )
         }
 
-        composable("contact list") {
-            val viewModel = koinViewModel<ContactsViewModel>()
+        composable("contactList") {
             ContactListScreen(
-                viewModel = viewModel,
-                onNavigateToIndividualContact = { navController.navigate("individual contact") },
+                viewModel = koinViewModel(),
+                onNavigateToIndividualContact = { navController.navigate("individualContact") },
                 onBack = { navController.navigate("home") }
             )
         }
 
-        composable("individual contact") {
-            val viewModel = koinViewModel<ContactsViewModel>()
+        composable("individualContact") {
             IndividualContactScreen(
-                viewModel = viewModel,
+                viewModel = koinViewModel(),
                 onNavigateToHome = { navController.navigate("home") },
-                onBack = { navController.navigate("contact list") }
+                onBack = { navController.navigate("contactList") }
             )
         }
 
         composable("calendar") {
-            val viewModel = koinViewModel<CalendarViewModel>()
             CalendarScreen(
-                viewModel = viewModel,
+                viewModel = koinViewModel(),
                 onBack = { navController.navigate("home") }
             )
         }
 
-        composable("contact list") {
-            val viewModel = koinViewModel<CalendarViewModel>()
+        composable("manageReminders") {
             ManageRemindersScreen(
-                viewModel = viewModel,
+                viewModel = koinViewModel(),
                 onBack = { navController.navigate("home") }
             )
         }
