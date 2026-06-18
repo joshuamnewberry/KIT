@@ -13,14 +13,20 @@ class KITRepository(
         name: String,
         phoneNumber: String? = null,
         email: String? = null,
-        relationshipType: String? = null
+        address: String? = null,
+        relationshipType: String? = null,
+        notes: String? = null,
+        birthdayMillis: Long? = null
     ) {
         val contact = Contact(
             id = generateId(),
             name = name,
             phoneNumber = phoneNumber,
             email = email,
+            address = address,
             relationshipType = relationshipType,
+            notes = notes,
+            birthdayMillis = birthdayMillis,
             lastContactedDate = null
         )
 
@@ -32,28 +38,41 @@ class KITRepository(
     }
 
     suspend fun addReminder(
-        contactId: String,
-        frequency: ReminderFrequency
+        contactIds: List<String>,
+        customMessage: String? = null,
+        frequencyType: ReminderFrequencyType,
+        frequencyValue: Int? = null
     ) {
         val now = currentTimeMillis()
-        val nextDate = ReminderDateCalculator.calculateNextReminderMillis(
-            currentTimeMillis = now,
-            frequency = frequency
-        )
+
+        // TODO: Update ReminderDateCalculator to support new Frequency Types and Values (KIT-70)
+        val nextDate = now + 86400000 // Temporary logic placeholder
 
         val reminder = CheckInReminder(
             id = generateId(),
-            contactId = contactId,
-            frequency = frequency.name,
+            customMessage = customMessage,
+            frequencyType = frequencyType.name,
+            frequencyValue = frequencyValue,
             nextReminderDate = nextDate,
             isCompleted = false
         )
 
         dao.insertReminder(reminder)
+
+        contactIds.forEach { contactId ->
+            dao.insertReminderContactCrossRef(
+                ReminderContactCrossRef(reminder.id, contactId)
+            )
+        }
     }
 
     suspend fun getRemindersForContact(contactId: String): List<CheckInReminder> {
         return dao.getRemindersForContact(contactId)
+    }
+
+    // TODO: Implement fetching logic to retrieve Events mapped to the visible calendar month (KIT-74)
+    suspend fun getEventsForContact(contactId: String): List<Event> {
+        return dao.getEventsForContact(contactId)
     }
 
     suspend fun addImportantDate(
@@ -78,6 +97,12 @@ class KITRepository(
     suspend fun getImportantDatesForContact(contactId: String): List<ImportantDate> {
         return dao.getImportantDatesForContact(contactId)
     }
+
+    // TODO: Implement "Clear All Data" database wipe logic (KIT-80)
+
+    // TODO: Implement "Export Backup" (Database to JSON serialization) (KIT-81)
+
+    // TODO: Implement "Import Backup" (JSON parsing to database batch insert) (KIT-82)
 
     private fun generateId(): String {
         return "${currentTimeMillis()}-${Random.nextInt(1000, 9999)}"

@@ -2,7 +2,6 @@ package edu.gvsu.cis.kit.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
@@ -93,7 +92,8 @@ fun IndividualContactScreen(
                                 Text("No reminders set.", style = MaterialTheme.typography.bodyMedium)
                             } else {
                                 reminders.forEach { reminder ->
-                                    Text("• ${reminder.frequency} Check-in")
+                                    // Fixed: Changed from reminder.frequency to reminder.frequencyType
+                                    Text("• ${reminder.frequencyType} Check-in")
                                 }
                             }
                             Spacer(modifier = Modifier.height(8.dp))

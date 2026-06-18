@@ -6,12 +6,15 @@ object ReminderDateCalculator {
 
     fun calculateNextReminderMillis(
         currentTimeMillis: Long,
-        frequency: ReminderFrequency
+        frequencyType: ReminderFrequencyType,
+        frequencyValue: Int? = null
     ): Long {
-        return when (frequency) {
-            ReminderFrequency.WEEKLY -> currentTimeMillis + 7L * DAY_IN_MILLIS
-            ReminderFrequency.MONTHLY -> currentTimeMillis + 30L * DAY_IN_MILLIS
-            ReminderFrequency.QUARTERLY -> currentTimeMillis + 90L * DAY_IN_MILLIS
+        // TODO: Implement precise calendar math (e.g., using kotlinx-datetime) to handle
+        // specific days of the week or month using the frequencyValue parameter (KIT-70)
+        return when (frequencyType) {
+            ReminderFrequencyType.DAILY -> currentTimeMillis + 1L * DAY_IN_MILLIS
+            ReminderFrequencyType.WEEKLY -> currentTimeMillis + 7L * DAY_IN_MILLIS
+            ReminderFrequencyType.MONTHLY -> currentTimeMillis + 30L * DAY_IN_MILLIS
         }
     }
 }

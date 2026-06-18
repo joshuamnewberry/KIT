@@ -7,7 +7,7 @@ import edu.gvsu.cis.kit.data.Contact
 import edu.gvsu.cis.kit.data.ImportantDate
 import edu.gvsu.cis.kit.data.ImportantDateType
 import edu.gvsu.cis.kit.data.KITRepository
-import edu.gvsu.cis.kit.data.ReminderFrequency
+import edu.gvsu.cis.kit.data.ReminderFrequencyType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -90,21 +90,22 @@ class ContactsViewModel(
 
     fun addWeeklyReminder(contactId: String) {
         viewModelScope.launch {
-            repository.addReminder(contactId, ReminderFrequency.WEEKLY)
+            // Fixed: Now wraps contactId in a List and uses the new Enum
+            repository.addReminder(
+                contactIds = listOf(contactId),
+                frequencyType = ReminderFrequencyType.WEEKLY
+            )
             _selectedContactReminders.value = repository.getRemindersForContact(contactId)
         }
     }
 
     fun addMonthlyReminder(contactId: String) {
         viewModelScope.launch {
-            repository.addReminder(contactId, ReminderFrequency.MONTHLY)
-            _selectedContactReminders.value = repository.getRemindersForContact(contactId)
-        }
-    }
-
-    fun addQuarterlyReminder(contactId: String) {
-        viewModelScope.launch {
-            repository.addReminder(contactId, ReminderFrequency.QUARTERLY)
+            // Fixed: Now wraps contactId in a List and uses the new Enum
+            repository.addReminder(
+                contactIds = listOf(contactId),
+                frequencyType = ReminderFrequencyType.MONTHLY
+            )
             _selectedContactReminders.value = repository.getRemindersForContact(contactId)
         }
     }

@@ -1,0 +1,268 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "8667d8f41f588dd89fcf1d1d9c7dd605",
+    "entities": [
+      {
+        "tableName": "contacts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `phoneNumber` TEXT, `email` TEXT, `address` TEXT, `relationshipType` TEXT, `notes` TEXT, `birthdayMillis` INTEGER, `lastContactedDate` INTEGER, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "phoneNumber",
+            "columnName": "phoneNumber",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "email",
+            "columnName": "email",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "address",
+            "columnName": "address",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "relationshipType",
+            "columnName": "relationshipType",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "birthdayMillis",
+            "columnName": "birthdayMillis",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "lastContactedDate",
+            "columnName": "lastContactedDate",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "check_in_reminders",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `customMessage` TEXT, `frequencyType` TEXT NOT NULL, `frequencyValue` INTEGER, `nextReminderDate` INTEGER NOT NULL, `isCompleted` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "customMessage",
+            "columnName": "customMessage",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "frequencyType",
+            "columnName": "frequencyType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "frequencyValue",
+            "columnName": "frequencyValue",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "nextReminderDate",
+            "columnName": "nextReminderDate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isCompleted",
+            "columnName": "isCompleted",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "events",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `timestampMillis` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestampMillis",
+            "columnName": "timestampMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "reminder_contact_cross_ref",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`reminderId` TEXT NOT NULL, `contactId` TEXT NOT NULL, PRIMARY KEY(`reminderId`, `contactId`))",
+        "fields": [
+          {
+            "fieldPath": "reminderId",
+            "columnName": "reminderId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contactId",
+            "columnName": "contactId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "reminderId",
+            "contactId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_reminder_contact_cross_ref_contactId",
+            "unique": false,
+            "columnNames": [
+              "contactId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_reminder_contact_cross_ref_contactId` ON `${TABLE_NAME}` (`contactId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "event_contact_cross_ref",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`eventId` TEXT NOT NULL, `contactId` TEXT NOT NULL, PRIMARY KEY(`eventId`, `contactId`))",
+        "fields": [
+          {
+            "fieldPath": "eventId",
+            "columnName": "eventId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contactId",
+            "columnName": "contactId",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "eventId",
+            "contactId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_event_contact_cross_ref_contactId",
+            "unique": false,
+            "columnNames": [
+              "contactId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_event_contact_cross_ref_contactId` ON `${TABLE_NAME}` (`contactId`)"
+          }
+        ]
+      },
+      {
+        "tableName": "important_dates",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `contactId` TEXT NOT NULL, `title` TEXT NOT NULL, `type` TEXT NOT NULL, `dateMillis` INTEGER NOT NULL, `repeatsEveryYear` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "contactId",
+            "columnName": "contactId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "type",
+            "columnName": "type",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateMillis",
+            "columnName": "dateMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repeatsEveryYear",
+            "columnName": "repeatsEveryYear",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8667d8f41f588dd89fcf1d1d9c7dd605')"
+    ]
+  }
+}

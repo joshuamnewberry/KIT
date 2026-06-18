@@ -14,14 +14,15 @@ class HomeViewModel(
     private val dao: AppDAO
 ) : ViewModel() {
 
-    // --- Home Screen State ---
+    // Weekly summary state
     private val _weeklyContactsCount = MutableStateFlow(0)
     val weeklyContactsCount: StateFlow<Int> = _weeklyContactsCount.asStateFlow()
 
+    // Upcoming reminders state
     private val _dueReminders = MutableStateFlow<List<Pair<CheckInReminder, Contact>>>(emptyList())
     val dueReminders: StateFlow<List<Pair<CheckInReminder, Contact>>> = _dueReminders.asStateFlow()
 
-    // --- Settings Screen State ---
+    // Settings state
     private val _isDarkMode = MutableStateFlow(true)
     val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
 
@@ -35,20 +36,18 @@ class HomeViewModel(
         loadHomeData()
     }
 
-    // --- Home Screen Functions ---
     fun loadHomeData() {
         viewModelScope.launch {
+            // TODO: Implement interaction logging and retrieval (KIT-87)
             _weeklyContactsCount.value = 4
 
             val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
             val reminders = dao.getDueReminders(now)
 
-            val remindersWithContacts = reminders.mapNotNull { reminder ->
-                val contact = dao.getContactById(reminder.contactId)
-                if (contact != null) {
+            val remindersWithContacts = reminders.flatMap { reminder ->
+                val contacts = dao.getContactsForReminder(reminder.id)
+                contacts.map { contact ->
                     Pair(reminder, contact)
-                } else {
-                    null
                 }
             }
 
@@ -64,28 +63,21 @@ class HomeViewModel(
         }
     }
 
-    // --- Settings Screen Functions ---
-    fun toggleDarkMode(enabled: Boolean) {
-        _isDarkMode.value = enabled
-    }
+    // Settings toggle functions
+    fun toggleDarkMode(enabled: Boolean) { _isDarkMode.value = enabled }
+    fun toggleDailyDigest(enabled: Boolean) { _dailyDigestEnabled.value = enabled }
+    fun togglePushAlerts(enabled: Boolean) { _pushAlertsEnabled.value = enabled }
 
-    fun toggleDailyDigest(enabled: Boolean) {
-        _dailyDigestEnabled.value = enabled
-    }
-
-    fun togglePushAlerts(enabled: Boolean) {
-        _pushAlertsEnabled.value = enabled
-    }
-
+    // Data management functions
     fun clearAllData() {
-        // TODO: Call DAO methods to drop tables or delete all rows
+        // TODO: Implement "Clear All Data" database wipe logic (KIT-80)
     }
 
     fun exportBackup() {
-        // TODO: Handle exporting SQLite to JSON or sending a file intent
+        // TODO: Implement "Export Backup" (KIT-81)
     }
 
     fun importBackup() {
-        // TODO: Handle reading a file and reconstructing the database
+        // TODO: Implement "Import Backup" (KIT-82)
     }
 }

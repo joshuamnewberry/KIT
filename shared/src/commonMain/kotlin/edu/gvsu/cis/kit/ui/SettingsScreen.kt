@@ -4,7 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -26,6 +26,7 @@ fun SettingsScreen(
     viewModel: HomeViewModel,
     onBack: () -> Unit
 ) {
+    // Corrected: Collect StateFlow to State correctly
     val isDarkMode by viewModel.isDarkMode.collectAsState()
     val dailyDigestEnabled by viewModel.dailyDigestEnabled.collectAsState()
     val pushAlertsEnabled by viewModel.pushAlertsEnabled.collectAsState()
@@ -36,7 +37,7 @@ fun SettingsScreen(
                 title = { Text("Settings") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -49,10 +50,7 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            // Appearance Category
-            item {
-                SettingsCategoryHeader("Appearance")
-            }
+            item { SettingsCategoryHeader("Appearance") }
             item {
                 SettingsSwitchRow(
                     icon = Icons.Default.Settings,
@@ -63,10 +61,7 @@ fun SettingsScreen(
                 )
             }
 
-            // Notifications Category
-            item {
-                SettingsCategoryHeader("Notifications")
-            }
+            item { SettingsCategoryHeader("Notifications") }
             item {
                 SettingsSwitchRow(
                     icon = Icons.Default.Notifications,
@@ -86,10 +81,7 @@ fun SettingsScreen(
                 )
             }
 
-            // Data & Privacy Category
-            item {
-                SettingsCategoryHeader("Data & Privacy")
-            }
+            item { SettingsCategoryHeader("Data & Privacy") }
             item {
                 SettingsActionRow(
                     icon = Icons.Default.Person,
@@ -108,7 +100,7 @@ fun SettingsScreen(
             }
             item {
                 SettingsActionRow(
-                    icon = Icons.Default.Info, // Placeholder icon
+                    icon = Icons.Default.Info,
                     title = "Clear All Data",
                     subtitle = "Permanently delete all contacts and history",
                     titleColor = MaterialTheme.colorScheme.error,
@@ -116,16 +108,9 @@ fun SettingsScreen(
                 )
             }
 
-            // About Category
+            item { SettingsCategoryHeader("About") }
             item {
-                SettingsCategoryHeader("About")
-            }
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 8.dp)
-                ) {
+                Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp)) {
                     Text(
                         text = "KIT (Keep In Touch) Version 1.0.0",
                         style = MaterialTheme.typography.bodyMedium,
@@ -163,24 +148,13 @@ private fun SettingsSwitchRow(
             .padding(horizontal = 24.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange
-        )
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 
@@ -199,19 +173,11 @@ private fun SettingsActionRow(
             .padding(horizontal = 24.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
-        )
+        Icon(icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(modifier = Modifier.width(16.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.bodyLarge, color = titleColor)
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(title, style = MaterialTheme.typography.bodyLarge, color = titleColor)
+            Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
