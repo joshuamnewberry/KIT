@@ -2,6 +2,7 @@ package edu.gvsu.cis.kit.viewModels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import edu.gvsu.cis.kit.data.CheckInReminder
 import edu.gvsu.cis.kit.data.Contact
 import edu.gvsu.cis.kit.data.ImportantDate
 import edu.gvsu.cis.kit.data.ImportantDateType
@@ -9,6 +10,7 @@ import edu.gvsu.cis.kit.data.KITRepository
 import edu.gvsu.cis.kit.data.ReminderFrequency
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ContactsViewModel(
@@ -16,14 +18,56 @@ class ContactsViewModel(
 ) : ViewModel() {
 
     private val _contacts = MutableStateFlow<List<Contact>>(emptyList())
-    val contacts: StateFlow<List<Contact>> = _contacts
+
+    private val _filteredContacts = MutableStateFlow<List<Contact>>(emptyList())
+    val filteredContacts: StateFlow<List<Contact>> = _filteredContacts.asStateFlow()
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    // State for Individual Contact Screen
+    private val _selectedContact = MutableStateFlow<Contact?>(null)
+    val selectedContact: StateFlow<Contact?> = _selectedContact.asStateFlow()
+
+    private val _selectedContactReminders = MutableStateFlow<List<CheckInReminder>>(emptyList())
+    val selectedContactReminders: StateFlow<List<CheckInReminder>> = _selectedContactReminders.asStateFlow()
 
     private val _importantDates = MutableStateFlow<List<ImportantDate>>(emptyList())
-    val importantDates: StateFlow<List<ImportantDate>> = _importantDates
+    val importantDates: StateFlow<List<ImportantDate>> = _importantDates.asStateFlow()
+
+    init {
+        loadContacts()
+    }
 
     fun loadContacts() {
         viewModelScope.launch {
-            _contacts.value = repository.getAllContacts()
+            val allContacts = repository.getAllContacts()
+            _contacts.value = allContacts
+            applySearchFilter(_searchQuery.value)
+        }
+    }
+
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+        applySearchFilter(query)
+    }
+
+    private fun applySearchFilter(query: String) {
+        if (query.isBlank()) {
+            _filteredContacts.value = _contacts.value
+        } else {
+            _filteredContacts.value = _contacts.value.filter {
+                it.name.contains(query, ignoreCase = true) ||
+                        (it.relationshipType?.contains(query, ignoreCase = true) == true)
+            }
+        }
+    }
+
+    fun selectContact(contactId: String) {
+        viewModelScope.launch {
+            _selectedContact.value = repository.getContactById(contactId)
+            _selectedContactReminders.value = repository.getRemindersForContact(contactId)
+            _importantDates.value = repository.getImportantDatesForContact(contactId)
         }
     }
 
@@ -47,18 +91,21 @@ class ContactsViewModel(
     fun addWeeklyReminder(contactId: String) {
         viewModelScope.launch {
             repository.addReminder(contactId, ReminderFrequency.WEEKLY)
+            _selectedContactReminders.value = repository.getRemindersForContact(contactId)
         }
     }
 
     fun addMonthlyReminder(contactId: String) {
         viewModelScope.launch {
             repository.addReminder(contactId, ReminderFrequency.MONTHLY)
+            _selectedContactReminders.value = repository.getRemindersForContact(contactId)
         }
     }
 
     fun addQuarterlyReminder(contactId: String) {
         viewModelScope.launch {
             repository.addReminder(contactId, ReminderFrequency.QUARTERLY)
+            _selectedContactReminders.value = repository.getRemindersForContact(contactId)
         }
     }
 

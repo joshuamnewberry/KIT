@@ -64,9 +64,9 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
 
             // Cloud Data & Images
-            implementation(libs.firebase.firestore)
-            implementation(libs.coil.compose)
-            implementation(libs.coil.network.ktor)
+            //implementation(libs.firebase.firestore)
+            //implementation(libs.coil.compose)
+            //implementation(libs.coil.network.ktor)
         }
 
         androidMain.dependencies {
