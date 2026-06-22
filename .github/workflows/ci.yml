@@ -21,11 +21,8 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
-
       - name: Make Gradle executable
         run: chmod +x ./gradlew
 
       - name: Run Android unit tests
-        run: ./gradlew androidApp:testDebugUnitTest --rerun-tasks
+        run: ./gradlew androidApp:testDebugUnitTest --rerun-tasks --no-configuration-cache
