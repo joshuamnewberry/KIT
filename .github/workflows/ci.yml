@@ -1,28 +1,41 @@
-name: KIT Tests
+name: Android Unit Testing
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+push:
+branches: [ "main" ]
+pull_request:
+branches: [ "main" ]
 
 jobs:
-  android-tests:
-    name: Android Unit Tests
-    runs-on: ubuntu-latest
+android-unit-tests:
+name: Android Unit Tests
+runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+```
+steps:
+  - name: Checkout Repository
+    uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: "17"
-          distribution: "temurin"
+  - name: Setup Java 17
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: '17'
 
-      - name: Make Gradle executable
-        run: chmod +x ./gradlew
+  - name: Make Gradle Executable
+    run: chmod +x gradlew
 
-      - name: Run Android unit tests
-        run: ./gradlew androidApp:testDebugUnitTest --rerun-tasks --no-daemon
+  - name: Run Android Unit Testing
+    run: ./gradlew androidApp:testDebugUnitTest --rerun-tasks --no-daemon
+
+  - name: Upload Build Reports
+    uses: actions/upload-artifact@v4
+    if: always()
+    with:
+      name: Android-Unit-Test-Reports
+      path: |
+        **/build/reports/**
+        **/build/test-results/**
+      if-no-files-found: warn
+
+
