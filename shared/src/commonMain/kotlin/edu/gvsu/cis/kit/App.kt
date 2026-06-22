@@ -74,7 +74,9 @@ fun App() {
                         NavigationBarItem(
                             icon = { Icon(topLevelRoute.icon, contentDescription = topLevelRoute.name) },
                             label = { Text(topLevelRoute.name) },
-                            selected = currentDestination?.hierarchy?.any { it.route?.startsWith(topLevelRoute.baseRoute) == true } == true,
+                            selected = currentDestination?.hierarchy?.any {
+                                it.route?.startsWith(topLevelRoute.baseRoute) == true
+                            } == true,
                             onClick = { navigateTopLevel(topLevelRoute.baseRoute) }
                         )
                     }
@@ -82,47 +84,77 @@ fun App() {
             }
         }
     ) { innerPadding ->
+
         NavHost(
             navController = navController,
             startDestination = TopLevelRoute.Home.baseRoute,
             modifier = Modifier.padding(innerPadding)
         ) {
+
             composable(TopLevelRoute.Home.baseRoute) {
                 HomeScreen(
                     viewModel = koinViewModel(),
                     onNavigateToSettings = { navController.navigate("settings") },
                     onNavigateToContactList = { showAdd ->
-                        val route = if (showAdd) "${TopLevelRoute.Contacts.baseRoute}?showAdd=true" else TopLevelRoute.Contacts.baseRoute
+                        val route =
+                            if (showAdd)
+                                "${TopLevelRoute.Contacts.baseRoute}?showAdd=true"
+                            else TopLevelRoute.Contacts.baseRoute
+
                         navigateTopLevel(route)
                     },
                     onNavigateToCalendar = { showAdd ->
-                        val route = if (showAdd) "${TopLevelRoute.Calendar.baseRoute}?showAdd=true" else TopLevelRoute.Calendar.baseRoute
+                        val route =
+                            if (showAdd)
+                                "${TopLevelRoute.Calendar.baseRoute}?showAdd=true"
+                            else TopLevelRoute.Calendar.baseRoute
+
                         navigateTopLevel(route)
                     },
                     onNavigateToReminders = { showAdd ->
-                        val route = if (showAdd) "${TopLevelRoute.Reminders.baseRoute}?showAdd=true" else TopLevelRoute.Reminders.baseRoute
+                        val route =
+                            if (showAdd)
+                                "${TopLevelRoute.Reminders.baseRoute}?showAdd=true"
+                            else TopLevelRoute.Reminders.baseRoute
+
                         navigateTopLevel(route)
                     }
                 )
             }
+
             composable("settings") {
                 SettingsScreen(
                     viewModel = koinViewModel(),
                     onBack = { navController.navigateUp() }
                 )
             }
+
             composable(
                 route = "${TopLevelRoute.Contacts.baseRoute}?showAdd={showAdd}",
-                arguments = listOf(navArgument("showAdd") { defaultValue = false; type = NavType.BoolType })
+                arguments = listOf(
+                    navArgument("showAdd") {
+                        defaultValue = false
+                        type = NavType.BoolType
+                    }
+                )
             ) { backStackEntry ->
-                val showAdd = backStackEntry.arguments?.getBoolean("showAdd") ?: false
+
+                val showAdd =
+                    navController.currentBackStackEntry
+                        ?.destination
+                        ?.route
+                        ?.contains("showAdd=true") == true
+
                 ContactListScreen(
                     viewModel = koinViewModel(),
                     initialShowAdd = showAdd,
-                    onNavigateToIndividualContact = { navController.navigate("individualContact") },
+                    onNavigateToIndividualContact = {
+                        navController.navigate("individualContact")
+                    },
                     onBack = { navController.navigateUp() }
                 )
             }
+
             composable("individualContact") {
                 IndividualContactScreen(
                     viewModel = koinViewModel(),
@@ -134,22 +166,46 @@ fun App() {
                     onBack = { navController.navigateUp() }
                 )
             }
+
             composable(
                 route = "${TopLevelRoute.Calendar.baseRoute}?showAdd={showAdd}",
-                arguments = listOf(navArgument("showAdd") { defaultValue = false; type = NavType.BoolType })
+                arguments = listOf(
+                    navArgument("showAdd") {
+                        defaultValue = false
+                        type = NavType.BoolType
+                    }
+                )
             ) { backStackEntry ->
-                val showAdd = backStackEntry.arguments?.getBoolean("showAdd") ?: false
+
+                val showAdd =
+                    navController.currentBackStackEntry
+                        ?.destination
+                        ?.route
+                        ?.contains("showAdd=true") == true
+
                 CalendarScreen(
                     viewModel = koinViewModel(),
                     initialShowAdd = showAdd,
                     onBack = { navController.navigateUp() }
                 )
             }
+
             composable(
                 route = "${TopLevelRoute.Reminders.baseRoute}?showAdd={showAdd}",
-                arguments = listOf(navArgument("showAdd") { defaultValue = false; type = NavType.BoolType })
+                arguments = listOf(
+                    navArgument("showAdd") {
+                        defaultValue = false
+                        type = NavType.BoolType
+                    }
+                )
             ) { backStackEntry ->
-                val showAdd = backStackEntry.arguments?.getBoolean("showAdd") ?: false
+
+                val showAdd =
+                    navController.currentBackStackEntry
+                        ?.destination
+                        ?.route
+                        ?.contains("showAdd=true") == true
+
                 ManageRemindersScreen(
                     viewModel = koinViewModel(),
                     initialShowAdd = showAdd,
