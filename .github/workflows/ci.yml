@@ -25,4 +25,4 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run Android unit tests
-        run: ./gradlew androidApp:testDebugUnitTest --rerun-tasks --no-configuration-cache
+        run: ./gradlew androidApp:testDebugUnitTest --rerun-tasks --no-daemon
