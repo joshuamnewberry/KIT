@@ -192,3 +192,10 @@ Run using Xcode.
 ## Repository
 
 https://github.com/joshuamnewberry/KIT
+
+
+## Documentation
+
+- [Risk Analysis](RiskAnalysis.md)
+- [Retrospective](Retrospective.md)
+- [Testing Documentation](Testing.md)
