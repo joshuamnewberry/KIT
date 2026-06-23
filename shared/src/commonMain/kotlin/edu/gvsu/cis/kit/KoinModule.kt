@@ -13,7 +13,7 @@ fun appModule(dao: AppDAO) = module {
 
     single { KITRepository(get()) }
 
-    factory { HomeViewModel(get()) }
+    single { HomeViewModel(get()) }
     factory { ContactsViewModel(get()) }
     factory { CalendarViewModel(get()) }
 }
