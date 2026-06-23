@@ -1,43 +1,10 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
-
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
-
-* [/shared](./shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
-
-### Running the apps
-
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
-
-- Android app: `./gradlew :androidApp:assembleDebug`
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
-
-### Running tests
-
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
-
-- Android tests: `./gradlew :shared:testAndroidHostTest`
-- iOS tests: `./gradlew :shared:iosSimulatorArm64Test`
-
----
-
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
-
-
 # KIT (Keep In Touch)
 
 ## Overview
 
-KIT (Keep In Touch) is a Kotlin Multiplatform mobile application designed to help users maintain relationships by tracking contacts, scheduling reminders, and receiving notifications when it is time to reconnect with someone.
+KIT (Keep In Touch) is a Kotlin Multiplatform mobile application that helps users maintain relationships by tracking contacts, scheduling reminders, and sending notifications when it is time to check in with someone.
 
-The goal of the application is to prevent important relationships from being forgotten by providing an easy-to-use contact management and reminder system.
+The project was developed as part of CIS 350 Software Engineering at Grand Valley State University.
 
 ---
 
@@ -45,39 +12,24 @@ The goal of the application is to prevent important relationships from being for
 
 * Joshua Newberry
 * Evan Logan
-* [Add Third Team Member]
+* Korbin TenBrink
 
 ---
 
 ## Technologies Used
 
-### Frontend
-
 * Kotlin Multiplatform (KMP)
 * Compose Multiplatform
-* SwiftUI (iOS Integration)
-
-### Backend / Data
-
 * Room Database
 * SQLite
 * Firebase Firestore
-
-### Dependency Injection
-
-* Koin
-
-### Networking
-
-* Ktor
-
-### Development Tools
-
+* Koin Dependency Injection
+* Ktor Networking
+* Android Studio
+* Xcode
 * GitHub
 * Jira
 * Lucidchart
-* Android Studio
-* Xcode
 
 ---
 
@@ -85,9 +37,9 @@ The goal of the application is to prevent important relationships from being for
 
 The application follows the MVVM (Model-View-ViewModel) architecture.
 
-### Components
+### Main Components
 
-#### UI Layer
+#### UI
 
 * Home Screen
 * Contacts Screen
@@ -104,8 +56,8 @@ The application follows the MVVM (Model-View-ViewModel) architecture.
 
 #### Data Layer
 
-* AppDAO
 * Room Database
+* DAO Pattern
 * Repository Pattern
 
 ---
@@ -114,11 +66,11 @@ The application follows the MVVM (Model-View-ViewModel) architecture.
 
 ### Contact Management
 
-* Create contacts
 * View contacts
-* Edit contact information
+* Manage contact information
+* Track relationship interactions
 
-### Reminder Management
+### Reminder System
 
 * Create reminders
 * Track upcoming reminders
@@ -126,20 +78,20 @@ The application follows the MVVM (Model-View-ViewModel) architecture.
 
 ### Notifications
 
-* Local notification support
+* Local notifications
 * Reminder alerts
-* Daily reminder notifications
+* Check-in reminders
 
 ### Settings
 
 * Notification preferences
-* Application settings
+* User settings
 
 ---
 
 ## UML Diagrams
 
-The project includes the following UML diagrams:
+The project includes:
 
 * Use Case Diagram
 * Class Diagram
@@ -150,53 +102,53 @@ Created using Lucidchart.
 
 ---
 
-## Installation
+## Running the Project
 
 ### Android
 
-1. Clone the repository
-
 ```bash
-git clone https://github.com/joshuamnewberry/KIT.git
+./gradlew :androidApp:assembleDebug
 ```
-
-2. Open the project in Android Studio
-
-3. Build and run the Android application
 
 ### iOS
 
-1. Clone the repository
-
-```bash
-git clone https://github.com/joshuamnewberry/KIT.git
-```
-
-2. Build the shared framework
+Build the shared framework:
 
 ```bash
 ./gradlew :shared:assemble
 ```
 
-3. Open:
+Open:
 
 ```text
 iosApp/iosApp.xcodeproj
 ```
 
-4. Run on an iOS Simulator
+Run using Xcode.
 
 ---
 
 ## Testing
 
-Testing includes:
+### Android Tests
 
-* ViewModel unit testing
-* Reminder scheduling verification
+```bash
+./gradlew :shared:testAndroidHostTest
+```
+
+### iOS Tests
+
+```bash
+./gradlew :shared:iosSimulatorArm64Test
+```
+
+### Manual Testing
+
+* Navigation testing
+* Contact management testing
+* Reminder testing
 * Notification testing
-* Android testing
-* iOS testing
+* iOS simulator testing
 
 ---
 
@@ -204,52 +156,39 @@ Testing includes:
 
 ### Risks Encountered
 
-* Learning Kotlin Multiplatform development
-* iOS framework configuration issues
+* Kotlin Multiplatform learning curve
 * Team merge conflicts
 * Firebase integration challenges
+* iOS build configuration issues
 * Time constraints near project deadlines
 
-### Mitigation Strategies
+### Mitigation
 
 * Frequent GitHub commits
-* Jira sprint tracking
+* Jira sprint planning
 * Team communication
-* Scope reduction when necessary
-* Incremental testing throughout development
+* Incremental testing
+* Scope management
 
 ---
 
 ## Retrospective
 
-### What Went Well
+### Successes
 
-* Successful Kotlin Multiplatform setup
-* Cross-platform code sharing
-* Effective use of GitHub and Jira
+* Successful KMP implementation
+* Cross-platform Android and iOS support
 * Functional notification system
+* Effective use of GitHub and Jira
 
-### What Could Be Improved
+### Improvements
 
 * Earlier testing implementation
-* More frequent integration testing
-* Better feature prioritization early in development
-
----
-
-## Future Improvements
-
-* Full calendar integration
-* Cloud synchronization
-* Contact import/export support
-* Advanced notification scheduling
-* Enhanced analytics and relationship tracking
+* More integration testing throughout development
+* Better time allocation for advanced features
 
 ---
 
 ## Repository
 
-GitHub Repository:
-
 https://github.com/joshuamnewberry/KIT
-
