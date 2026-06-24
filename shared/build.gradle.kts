@@ -14,8 +14,8 @@ kotlin {
     applyDefaultHierarchyTemplate()
 
     androidLibrary {
-        namespace = "edu.gvsu.cis.multi_timer.shared"
-        // Use compileSdk and minSdk from TOML
+        // FIXED: Namespace updated to avoid clashes
+        namespace = "edu.gvsu.cis.kit.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
 
@@ -36,7 +36,6 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            // Compose Multiplatform
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
@@ -45,31 +44,25 @@ kotlin {
             implementation(libs.compose.material.icons)
             implementation(libs.navigation.compose)
 
-            // Lifecycle & Room
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
             api(libs.androidx.room.runtime)
             api(libs.androidx.sqlite.bundled)
 
-            // Koin DI
             implementation(libs.koin.core)
             implementation(libs.koin.compose.viewmodel)
 
-            // Ktor Networking & Serialization
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.kotlinx.serialization.json)
-
-            // Cloud Data & Images
-            //implementation(libs.firebase.firestore)
-            //implementation(libs.coil.compose)
-            //implementation(libs.coil.network.ktor)
         }
 
         androidMain.dependencies {
+            // FIXED: Using string literal to guarantee WorkManager loads correctly
+            implementation("androidx.work:work-runtime-ktx:2.9.0")
             implementation(project.dependencies.platform("com.google.firebase:firebase-bom:33.1.0"))
 
             implementation(libs.ktor.client.android)

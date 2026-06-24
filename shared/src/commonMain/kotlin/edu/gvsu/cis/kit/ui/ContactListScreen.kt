@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Delete
@@ -27,108 +28,64 @@ fun ContactListScreen(
     viewModel: ContactsViewModel,
     initialShowAdd: Boolean = false,
     onNavigateToIndividualContact: (String) -> Unit,
+    onNavigateToAddContact: () -> Unit, // NEW
     onBack: () -> Unit
 ) {
     val contacts by viewModel.filteredContacts.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
-
-    var showAddDialog by remember { mutableStateOf(initialShowAdd) }
     var contactToDelete by remember { mutableStateOf<Contact?>(null) }
 
-    var newName by remember { mutableStateOf("") }
-    var newRelationship by remember { mutableStateOf("") }
+    LaunchedEffect(Unit) {
+        viewModel.loadContacts()
+        if (initialShowAdd) onNavigateToAddContact()
+    }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Contacts") }) },
+        topBar = { TopAppBar(title = { Text("Contacts") }, navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") } }) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                icon = { Icon(Icons.Default.Add, contentDescription = "Add Contact") },
+                onClick = onNavigateToAddContact,
+                icon = { Icon(Icons.Default.Add, "Add Contact") },
                 text = { Text("Add Contact") }
             )
         }
     ) { paddingValues ->
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(horizontal = 16.dp)) {
             OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { viewModel.updateSearchQuery(it) },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search contacts...") },
-                leadingIcon = { Icon(Icons.Default.Search, null) },
-                singleLine = true,
-                shape = MaterialTheme.shapes.extraLarge
+                value = searchQuery, onValueChange = { viewModel.updateSearchQuery(it) }, modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Search contacts...") }, leadingIcon = { Icon(Icons.Default.Search, null) }, singleLine = true
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
             LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 items(contacts) { contact ->
                     Card(modifier = Modifier.fillMaxWidth().clickable { onNavigateToIndividualContact(contact.id) }) {
                         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             Surface(modifier = Modifier.size(48.dp), shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer) {
+                                // TODO: Replace placeholder with AsyncImage loaded from profilePictureUri when available
                                 Icon(Icons.Default.Person, null, modifier = Modifier.padding(12.dp))
                             }
-                            Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
-                                Text(text = contact.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                Text(text = contact.relationshipType ?: "No relationship", style = MaterialTheme.typography.bodySmall)
-                            }
 
-                            IconButton(onClick = { viewModel.triggerCall(contact.phoneNumber ?: "") }) {
-                                Icon(Icons.Default.Call, contentDescription = "Call")
+                            // FIXED: Arranged to center correctly when relationship is blank
+                            Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp), verticalArrangement = Arrangement.Center) {
+                                Text(text = contact.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                if (!contact.relationshipType.isNullOrBlank()) {
+                                    Text(text = contact.relationshipType, style = MaterialTheme.typography.bodySmall)
+                                }
                             }
-                            IconButton(onClick = { viewModel.triggerMessage(contact.phoneNumber ?: "") }) {
-                                Icon(Icons.Default.Sms, contentDescription = "Message")
-                            }
-                            IconButton(onClick = { contactToDelete = contact }) {
-                                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
-                            }
+                            IconButton(onClick = { viewModel.triggerCall(contact.phoneNumber ?: "") }) { Icon(Icons.Default.Call, "Call") }
+                            IconButton(onClick = { viewModel.triggerMessage(contact.phoneNumber ?: "") }) { Icon(Icons.Default.Sms, "Message") }
+                            IconButton(onClick = { contactToDelete = contact }) { Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error) }
                         }
                     }
                 }
             }
         }
 
-        // Delete Confirmation Dialog
         contactToDelete?.let { contact ->
             AlertDialog(
-                onDismissRequest = { contactToDelete = null },
-                title = { Text("Delete Contact") },
-                text = { Text("Are you sure you want to delete ${contact.name}? This action cannot be undone.") },
-                confirmButton = {
-                    TextButton(onClick = {
-                        viewModel.deleteContact(contact.id)
-                        contactToDelete = null
-                    }) { Text("Delete", color = MaterialTheme.colorScheme.error) }
-                },
-                dismissButton = {
-                    TextButton(onClick = { contactToDelete = null }) { Text("Cancel") }
-                }
-            )
-        }
-
-        // Add Contact Dialog
-        if (showAddDialog) {
-            AlertDialog(
-                onDismissRequest = { showAddDialog = false },
-                title = { Text("Add New Contact") },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedTextField(value = newName, onValueChange = { newName = it }, label = { Text("Name") })
-                        OutlinedTextField(value = newRelationship, onValueChange = { newRelationship = it }, label = { Text("Relationship") })
-                    }
-                },
-                confirmButton = {
-                    Button(onClick = {
-                        if (newName.isNotBlank()) {
-                            viewModel.addContact(newName, "", "", newRelationship)
-                            newName = ""
-                            newRelationship = ""
-                            showAddDialog = false
-                        }
-                    }) { Text("Add") }
-                },
-                dismissButton = { TextButton(onClick = { showAddDialog = false }) { Text("Cancel") } }
+                onDismissRequest = { contactToDelete = null }, title = { Text("Delete Contact") }, text = { Text("Delete ${contact.name}?") },
+                confirmButton = { TextButton(onClick = { viewModel.deleteContact(contact.id); contactToDelete = null }) { Text("Delete", color = MaterialTheme.colorScheme.error) } },
+                dismissButton = { TextButton(onClick = { contactToDelete = null }) { Text("Cancel") } }
             )
         }
     }

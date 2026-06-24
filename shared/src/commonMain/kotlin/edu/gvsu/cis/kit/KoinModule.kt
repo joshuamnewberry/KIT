@@ -24,12 +24,12 @@ fun initKoin(dao: AppDAO, context: Any? = null) {
         startKoin {
             modules(appModule(dao))
         }
-        // Initialize platform context
+        // Initialize platform context safely
         if (context != null) {
-            initAndroidPlatform(context)
+            initPlatformContext(context)
         }
     } catch (_: Exception) { }
 }
 
-// Platform-specific hook (actual implementations define this)
-expect fun initAndroidPlatform(context: Any)
+// Platform-specific hook (actual implementations define this inside Platform.kt for iOS/Android)
+expect fun initPlatformContext(context: Any)

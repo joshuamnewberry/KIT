@@ -1,34 +1,23 @@
 package edu.gvsu.cis.kit.data
 
 import androidx.room.Entity
-import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.serialization.Serializable
 
-enum class ReminderFrequencyType {
-    DAILY,
-    WEEKLY,
-    MONTHLY
-}
-
-enum class ImportantDateType {
-    BIRTHDAY,
-    ANNIVERSARY,
-    CUSTOM
-}
-
+@Serializable
 @Entity(tableName = "contacts")
 data class Contact(
     @PrimaryKey val id: String,
     val name: String,
     val phoneNumber: String? = null,
     val email: String? = null,
-    val address: String? = null,
     val relationshipType: String? = null,
+    val address: String? = null,
     val notes: String? = null,
-    val birthdayMillis: Long? = null,
-    val lastContactedDate: Long? = null
+    val profilePictureUri: String? = null // New Image Field added
 )
 
+@Serializable
 @Entity(tableName = "check_in_reminders")
 data class CheckInReminder(
     @PrimaryKey val id: String,
@@ -39,6 +28,9 @@ data class CheckInReminder(
     val isCompleted: Boolean = false
 )
 
+enum class ReminderFrequencyType { DAILY, WEEKLY, MONTHLY, YEARLY, CUSTOM }
+
+@Serializable
 @Entity(tableName = "events")
 data class Event(
     @PrimaryKey val id: String,
@@ -46,32 +38,20 @@ data class Event(
     val timestampMillis: Long
 )
 
-@Entity(
-    tableName = "reminder_contact_cross_ref",
-    primaryKeys = ["reminderId", "contactId"],
-    indices = [Index("contactId")]
-)
-data class ReminderContactCrossRef(
-    val reminderId: String,
-    val contactId: String
-)
-
-@Entity(
-    tableName = "event_contact_cross_ref",
-    primaryKeys = ["eventId", "contactId"],
-    indices = [Index("contactId")]
-)
-data class EventContactCrossRef(
-    val eventId: String,
-    val contactId: String
-)
-
+@Serializable
 @Entity(tableName = "important_dates")
 data class ImportantDate(
     @PrimaryKey val id: String,
     val contactId: String,
     val title: String,
     val type: String,
-    val dateMillis: Long,
-    val repeatsEveryYear: Boolean = true
+    val dateMillis: Long
 )
+
+enum class ImportantDateType { BIRTHDAY, ANNIVERSARY, CUSTOM }
+
+@Entity(tableName = "reminder_contact_cross_ref", primaryKeys = ["reminderId", "contactId"])
+data class ReminderContactCrossRef(val reminderId: String, val contactId: String)
+
+@Entity(tableName = "event_contact_cross_ref", primaryKeys = ["eventId", "contactId"])
+data class EventContactCrossRef(val eventId: String, val contactId: String)

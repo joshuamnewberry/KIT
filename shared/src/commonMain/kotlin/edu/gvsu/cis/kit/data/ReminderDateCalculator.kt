@@ -1,20 +1,20 @@
 package edu.gvsu.cis.kit.data
 
+import edu.gvsu.cis.kit.getCurrentTimeMillis
+
 object ReminderDateCalculator {
-
-    private const val DAY_IN_MILLIS = 24L * 60L * 60L * 1000L
-
-    fun calculateNextReminderMillis(
-        currentTimeMillis: Long,
+    fun calculateNextDate(
         frequencyType: ReminderFrequencyType,
-        frequencyValue: Int? = null
+        frequencyValue: Int? = null,
+        currentDateMillis: Long = getCurrentTimeMillis()
     ): Long {
-        // TODO: Implement precise calendar math (e.g., using kotlinx-datetime) to handle
-        // specific days of the week or month using the frequencyValue parameter (KIT-70)
+        val oneDayMillis = 24L * 60 * 60 * 1000L
         return when (frequencyType) {
-            ReminderFrequencyType.DAILY -> currentTimeMillis + 1L * DAY_IN_MILLIS
-            ReminderFrequencyType.WEEKLY -> currentTimeMillis + 7L * DAY_IN_MILLIS
-            ReminderFrequencyType.MONTHLY -> currentTimeMillis + 30L * DAY_IN_MILLIS
+            ReminderFrequencyType.DAILY -> currentDateMillis + oneDayMillis
+            ReminderFrequencyType.WEEKLY -> currentDateMillis + (7 * oneDayMillis)
+            ReminderFrequencyType.MONTHLY -> currentDateMillis + (30 * oneDayMillis)
+            ReminderFrequencyType.YEARLY -> currentDateMillis + (365 * oneDayMillis)
+            ReminderFrequencyType.CUSTOM -> currentDateMillis + ((frequencyValue ?: 1) * oneDayMillis)
         }
     }
 }

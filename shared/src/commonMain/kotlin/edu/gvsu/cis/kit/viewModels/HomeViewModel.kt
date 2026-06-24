@@ -5,79 +5,70 @@ import androidx.lifecycle.viewModelScope
 import edu.gvsu.cis.kit.data.AppDAO
 import edu.gvsu.cis.kit.data.CheckInReminder
 import edu.gvsu.cis.kit.data.Contact
+import edu.gvsu.cis.kit.data.KITRepository
+import edu.gvsu.cis.kit.getKeyValueStore
+import edu.gvsu.cis.kit.getCurrentTimeMillis
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class HomeViewModel(
-    private val dao: AppDAO
-) : ViewModel() {
+class HomeViewModel(private val dao: AppDAO) : ViewModel() {
+    private val repository = KITRepository(dao)
+    private val store = getKeyValueStore()
 
-    // Weekly summary state
     private val _weeklyContactsCount = MutableStateFlow(0)
     val weeklyContactsCount: StateFlow<Int> = _weeklyContactsCount.asStateFlow()
 
-    // Upcoming reminders state
     private val _dueReminders = MutableStateFlow<List<Pair<CheckInReminder, Contact>>>(emptyList())
     val dueReminders: StateFlow<List<Pair<CheckInReminder, Contact>>> = _dueReminders.asStateFlow()
 
-    // Settings state
-    private val _isDarkMode = MutableStateFlow(true)
+    private val _isDarkMode = MutableStateFlow(store.getBoolean("pref_dark_mode", true))
     val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
 
-    private val _dailyDigestEnabled = MutableStateFlow(true)
+    private val _dailyDigestEnabled = MutableStateFlow(store.getBoolean("pref_daily_digest", true))
     val dailyDigestEnabled: StateFlow<Boolean> = _dailyDigestEnabled.asStateFlow()
 
-    private val _pushAlertsEnabled = MutableStateFlow(true)
+    private val _pushAlertsEnabled = MutableStateFlow(store.getBoolean("pref_push_alerts", true))
     val pushAlertsEnabled: StateFlow<Boolean> = _pushAlertsEnabled.asStateFlow()
 
-    init {
-        loadHomeData()
-    }
+    init { loadHomeData() }
 
     fun loadHomeData() {
         viewModelScope.launch {
-            // TODO: Implement interaction logging and retrieval (KIT-87)
-            _weeklyContactsCount.value = 4
+            _weeklyContactsCount.value = repository.getWeeklyInteractionCount()
 
-            val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
-            val reminders = dao.getDueReminders(now)
-
-            val remindersWithContacts = reminders.flatMap { reminder ->
-                val contacts = dao.getContactsForReminder(reminder.id)
-                contacts.map { contact ->
-                    Pair(reminder, contact)
-                }
+            val reminders = dao.getDueReminders(getCurrentTimeMillis())
+            _dueReminders.value = reminders.flatMap { reminder ->
+                dao.getContactsForReminder(reminder.id).map { Pair(reminder, it) }
             }
-
-            _dueReminders.value = remindersWithContacts
         }
     }
 
-    fun markReminderComplete(reminder: CheckInReminder) {
+    fun toggleDarkMode(enabled: Boolean) {
+        store.setBoolean("pref_dark_mode", enabled)
+        _isDarkMode.value = enabled
+    }
+
+    fun toggleDailyDigest(enabled: Boolean) {
+        store.setBoolean("pref_daily_digest", enabled)
+        _dailyDigestEnabled.value = enabled
+    }
+
+    fun togglePushAlerts(enabled: Boolean) {
+        store.setBoolean("pref_push_alerts", enabled)
+        _pushAlertsEnabled.value = enabled
+    }
+
+    fun clearAllData() {
         viewModelScope.launch {
-            val updatedReminder = reminder.copy(isCompleted = true)
-            dao.updateReminder(updatedReminder)
+            dao.getAllContacts().forEach { contact ->
+                dao.getRemindersForContact(contact.id).forEach { dao.deleteReminder(it) }
+                dao.getEventsForContact(contact.id).forEach { dao.deleteEvent(it) }
+                dao.getImportantDatesForContact(contact.id).forEach { dao.deleteImportantDate(it) }
+                dao.deleteContact(contact)
+            }
             loadHomeData()
         }
-    }
-
-    // Settings toggle functions
-    fun toggleDarkMode(enabled: Boolean) { _isDarkMode.value = enabled }
-    fun toggleDailyDigest(enabled: Boolean) { _dailyDigestEnabled.value = enabled }
-    fun togglePushAlerts(enabled: Boolean) { _pushAlertsEnabled.value = enabled }
-
-    // Data management functions
-    fun clearAllData() {
-        // TODO: Implement "Clear All Data" database wipe logic (KIT-80)
-    }
-
-    fun exportBackup() {
-        // TODO: Implement "Export Backup" (KIT-81)
-    }
-
-    fun importBackup() {
-        // TODO: Implement "Import Backup" (KIT-82)
     }
 }

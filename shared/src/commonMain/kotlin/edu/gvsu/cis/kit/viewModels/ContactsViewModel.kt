@@ -10,9 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class ContactsViewModel(
-    private val repository: KITRepository
-) : ViewModel() {
+class ContactsViewModel(private val repository: KITRepository) : ViewModel() {
 
     private val _contacts = MutableStateFlow<List<Contact>>(emptyList())
     private val _filteredContacts = MutableStateFlow<List<Contact>>(emptyList())
@@ -38,11 +36,7 @@ class ContactsViewModel(
 
     fun deleteContact(contactId: String) {
         viewModelScope.launch {
-            val contact = repository.getContactById(contactId)
-            if (contact != null) {
-                repository.deleteContact(contact)
-                loadContacts()
-            }
+            repository.getContactById(contactId)?.let { repository.deleteContact(it); loadContacts() }
         }
     }
 
@@ -52,13 +46,8 @@ class ContactsViewModel(
     }
 
     private fun applySearchFilter(query: String) {
-        if (query.isBlank()) {
-            _filteredContacts.value = _contacts.value
-        } else {
-            _filteredContacts.value = _contacts.value.filter {
-                it.name.contains(query, ignoreCase = true) ||
-                        (it.relationshipType?.contains(query, ignoreCase = true) == true)
-            }
+        _filteredContacts.value = if (query.isBlank()) _contacts.value else _contacts.value.filter {
+            it.name.contains(query, true) || (it.relationshipType?.contains(query, true) == true)
         }
     }
 
@@ -79,22 +68,21 @@ class ContactsViewModel(
 
     fun updateNotes(contactId: String, newNotes: String) {
         viewModelScope.launch {
-            val current = _selectedContact.value
-            if (current?.id == contactId) {
-                val updated = current.copy(notes = newNotes)
+            _selectedContact.value?.takeIf { it.id == contactId }?.let {
+                val updated = it.copy(notes = newNotes)
                 repository.updateContact(updated)
                 _selectedContact.value = updated
             }
         }
     }
 
-    fun triggerCall(phoneNumber: String) {
-        if (phoneNumber.isNotBlank()) triggerCallIntent(phoneNumber)
+    fun logInteraction(contactId: String) {
+        viewModelScope.launch { repository.logInteraction(contactId) }
     }
 
-    fun triggerMessage(phoneNumber: String) {
-        if (phoneNumber.isNotBlank()) triggerSmsIntent(phoneNumber)
-    }
+    fun triggerCall(phoneNumber: String) { if (phoneNumber.isNotBlank()) triggerCallIntent(phoneNumber) }
+
+    fun triggerMessage(phoneNumber: String) { if (phoneNumber.isNotBlank()) triggerSmsIntent(phoneNumber) }
 
     fun addContact(name: String, phoneNumber: String, email: String, relationshipType: String) {
         viewModelScope.launch {

@@ -18,7 +18,6 @@ import kotlinx.coroutines.IO
 
 @Dao
 interface AppDAO {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertContact(contact: Contact)
 
@@ -43,8 +42,12 @@ interface AppDAO {
     @Delete
     suspend fun deleteReminder(reminder: CheckInReminder)
 
+    @Query("SELECT * FROM check_in_reminders ORDER BY nextReminderDate ASC")
+    suspend fun getAllReminders(): List<CheckInReminder>
+
+    // FIXED: Selecting explicit table columns to avoid cross-ref mismatch warnings
     @Query("""
-        SELECT * FROM check_in_reminders 
+        SELECT check_in_reminders.* FROM check_in_reminders 
         INNER JOIN reminder_contact_cross_ref ON check_in_reminders.id = reminder_contact_cross_ref.reminderId 
         WHERE reminder_contact_cross_ref.contactId = :contactId
     """)
@@ -62,12 +65,16 @@ interface AppDAO {
     @Delete
     suspend fun deleteEvent(event: Event)
 
+    // FIXED: Selecting explicit table columns to avoid cross-ref mismatch warnings
     @Query("""
-        SELECT * FROM events 
+        SELECT events.* FROM events 
         INNER JOIN event_contact_cross_ref ON events.id = event_contact_cross_ref.eventId 
         WHERE event_contact_cross_ref.contactId = :contactId
     """)
     suspend fun getEventsForContact(contactId: String): List<Event>
+
+    @Query("SELECT COUNT(DISTINCT event_contact_cross_ref.contactId) FROM events INNER JOIN event_contact_cross_ref ON events.id = event_contact_cross_ref.eventId WHERE events.timestampMillis >= :startOfWeekMillis")
+    suspend fun getWeeklyInteractionCount(startOfWeekMillis: Long): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReminderContactCrossRef(crossRef: ReminderContactCrossRef)
@@ -80,8 +87,6 @@ interface AppDAO {
 
     @Delete
     suspend fun deleteEventContactCrossRef(crossRef: EventContactCrossRef)
-
-    // TODO: Wire contact deletion to cascade-delete related cross-references in the database (KIT-57)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertImportantDate(importantDate: ImportantDate)
@@ -99,23 +104,19 @@ interface AppDAO {
     suspend fun getUpcomingImportantDates(upcomingTimeMillis: Long): List<ImportantDate>
 
     @Query("""
-    SELECT contacts.* FROM contacts 
-    INNER JOIN reminder_contact_cross_ref ON contacts.id = reminder_contact_cross_ref.contactId 
-    WHERE reminder_contact_cross_ref.reminderId = :reminderId
-""")
+        SELECT contacts.* FROM contacts 
+        INNER JOIN reminder_contact_cross_ref ON contacts.id = reminder_contact_cross_ref.contactId 
+        WHERE reminder_contact_cross_ref.reminderId = :reminderId
+    """)
     suspend fun getContactsForReminder(reminderId: String): List<Contact>
 }
 
 @Database(
     entities = [
-        Contact::class,
-        CheckInReminder::class,
-        Event::class,
-        ReminderContactCrossRef::class,
-        EventContactCrossRef::class,
-        ImportantDate::class
+        Contact::class, CheckInReminder::class, Event::class,
+        ReminderContactCrossRef::class, EventContactCrossRef::class, ImportantDate::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 @ConstructedBy(MyDatabaseBuilder::class)

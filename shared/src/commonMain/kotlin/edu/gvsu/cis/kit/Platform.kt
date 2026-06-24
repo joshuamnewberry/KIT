@@ -6,17 +6,21 @@ interface Platform {
 
 expect fun getPlatform(): Platform
 
-// TODO: Implement KMP actual interfaces for requesting OS Contacts read permissions (KIT-46)
+// UUID & Time Utilities
+expect fun generateUUID(): String
+expect fun getCurrentTimeMillis(): Long
+
+// Native Integrations
 expect fun requestContactImport()
-
-// TODO: Implement KMP actual interfaces for triggering native phone dialer intents (KIT-47)
 expect fun triggerCallIntent(phoneNumber: String)
-
-// TODO: Implement KMP actual interfaces for triggering native SMS/messaging intents (KIT-48)
 expect fun triggerSmsIntent(phoneNumber: String)
-
-// TODO: Implement KMP actual interfaces for requesting local notification scheduling permissions (KIT-49)
 expect fun requestNotificationPermission()
-
-// TODO: Implement background task scheduler (WorkManager for Android / BGTaskScheduler for iOS) (KIT-83)
 expect fun scheduleBackgroundTasks()
+
+// Cross-Platform Settings Store
+interface KeyValueStore {
+    fun getBoolean(key: String, defaultValue: Boolean): Boolean
+    fun setBoolean(key: String, value: Boolean)
+}
+
+expect fun getKeyValueStore(): KeyValueStore

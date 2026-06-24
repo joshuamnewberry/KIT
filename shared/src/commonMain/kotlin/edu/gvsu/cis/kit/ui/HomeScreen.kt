@@ -1,22 +1,14 @@
 package edu.gvsu.cis.kit.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import edu.gvsu.cis.kit.viewModels.HomeViewModel
@@ -25,162 +17,47 @@ import edu.gvsu.cis.kit.viewModels.HomeViewModel
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onNavigateToSettings: () -> Unit,
-    onNavigateToContactList: (Boolean) -> Unit,
-    onNavigateToReminders: (Boolean) -> Unit
+    onNavigateToSettings: () -> Unit
 ) {
     val weeklyCount by viewModel.weeklyContactsCount.collectAsState()
     val dueReminders by viewModel.dueReminders.collectAsState()
 
-    var isFabExpanded by remember { mutableStateOf(false) }
+    // Refresh slots on returning to tab
+    LaunchedEffect(Unit) {
+        viewModel.loadHomeData()
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Good Morning!") },
+                title = { Text("Dashboard") },
                 actions = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings"
-                        )
-                    }
+                    IconButton(onClick = onNavigateToSettings) { Icon(Icons.Default.Settings, contentDescription = "Settings") }
                 }
             )
-        },
-        floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.End,
-                modifier = Modifier.offset(y = 12.dp)
-            ) {
-                AnimatedVisibility(visible = isFabExpanded) {
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    ) {
-                        ExtendedFloatingActionButton(
-                            onClick = {
-                                isFabExpanded = false
-                                onNavigateToContactList(true)
-                            },
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            icon = { Icon(Icons.Default.Person, contentDescription = "Add Contact") },
-                            text = { Text("Add Contact") },
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
-                        ExtendedFloatingActionButton(
-                            onClick = {
-                                isFabExpanded = false
-                                onNavigateToReminders(true)
-                            },
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            icon = { Icon(Icons.Default.Notifications, contentDescription = "Add Reminder") },
-                            text = { Text("Add Reminder") }
-                        )
-                    }
-                }
-
-                FloatingActionButton(
-                    onClick = { isFabExpanded = !isFabExpanded },
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                ) {
-                    Icon(
-                        imageVector = if (isFabExpanded) Icons.Default.Close else Icons.Default.Add,
-                        contentDescription = "Expand Actions"
-                    )
-                }
-            }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "Weekly Summary",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "You've reached out to $weeklyCount people this week!",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        text = "Current Streak: 3 weeks",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f)
-                    )
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp)) {
+            Card(modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("Weekly Interactions", style = MaterialTheme.typography.titleMedium)
+                    Text("$weeklyCount", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold)
                 }
             }
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "Upcoming Check-ins",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Upcoming Check-ins", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(8.dp))
 
-                if (dueReminders.isEmpty()) {
-                    Text(
-                        text = "You're all caught up! Great job.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                } else {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(dueReminders) { (reminder, contact) ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column {
-                                        Text(
-                                            text = contact.name,
-                                            style = MaterialTheme.typography.titleMedium
-                                        )
-                                        Text(
-                                            text = "Frequency: ${reminder.frequencyType}",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-
-                                    IconButton(
-                                        onClick = { viewModel.markReminderComplete(reminder) },
-                                        colors = IconButtonDefaults.iconButtonColors(
-                                            contentColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Check,
-                                            contentDescription = "Mark Complete"
-                                        )
-                                    }
-                                }
+            if (dueReminders.isEmpty()) {
+                Text("You're all caught up!", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(dueReminders) { (reminder, contact) ->
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(reminder.customMessage ?: "Check-in", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                Text("With: ${contact.name}", style = MaterialTheme.typography.bodyMedium)
                             }
                         }
                     }
