@@ -2,7 +2,6 @@ package edu.gvsu.cis.kit
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -12,6 +11,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -23,18 +23,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import edu.gvsu.cis.kit.ui.CalendarScreen
 import edu.gvsu.cis.kit.ui.ContactListScreen
 import edu.gvsu.cis.kit.ui.HomeScreen
 import edu.gvsu.cis.kit.ui.IndividualContactScreen
 import edu.gvsu.cis.kit.ui.ManageRemindersScreen
 import edu.gvsu.cis.kit.ui.SettingsScreen
+import edu.gvsu.cis.kit.viewModels.ContactsViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 sealed class TopLevelRoute(val name: String, val baseRoute: String, val icon: ImageVector) {
     object Home : TopLevelRoute("Home", "home", Icons.Default.Home)
     object Contacts : TopLevelRoute("Contacts", "contactList", Icons.Default.Person)
-    object Calendar : TopLevelRoute("Calendar", "calendar", Icons.Default.DateRange)
     object Reminders : TopLevelRoute("Reminders", "manageReminders", Icons.Default.Notifications)
 }
 
@@ -45,7 +44,6 @@ fun App() {
     val bottomNavigationItems = listOf(
         TopLevelRoute.Home,
         TopLevelRoute.Contacts,
-        TopLevelRoute.Calendar,
         TopLevelRoute.Reminders
     )
 
@@ -88,7 +86,8 @@ fun App() {
         NavHost(
             navController = navController,
             startDestination = TopLevelRoute.Home.baseRoute,
-            modifier = Modifier.padding(innerPadding)
+            // GLOBALLY FIXED: Only apply bottom padding so inner TopAppBars handle top insets correctly
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
 
             composable(TopLevelRoute.Home.baseRoute) {
@@ -100,14 +99,6 @@ fun App() {
                             if (showAdd)
                                 "${TopLevelRoute.Contacts.baseRoute}?showAdd=true"
                             else TopLevelRoute.Contacts.baseRoute
-
-                        navigateTopLevel(route)
-                    },
-                    onNavigateToCalendar = { showAdd ->
-                        val route =
-                            if (showAdd)
-                                "${TopLevelRoute.Calendar.baseRoute}?showAdd=true"
-                            else TopLevelRoute.Calendar.baseRoute
 
                         navigateTopLevel(route)
                     },
@@ -148,44 +139,36 @@ fun App() {
                 ContactListScreen(
                     viewModel = koinViewModel(),
                     initialShowAdd = showAdd,
-                    onNavigateToIndividualContact = {
-                        navController.navigate("individualContact")
-                    },
-                    onBack = { navController.navigateUp() }
-                )
-            }
-
-            composable("individualContact") {
-                IndividualContactScreen(
-                    viewModel = koinViewModel(),
-                    onNavigateToHome = {
-                        navController.navigate(TopLevelRoute.Home.baseRoute) {
-                            popUpTo(TopLevelRoute.Home.baseRoute) { inclusive = true }
-                        }
+                    onNavigateToIndividualContact = { contactId ->
+                        navController.navigate("individualContact/$contactId")
                     },
                     onBack = { navController.navigateUp() }
                 )
             }
 
             composable(
-                route = "${TopLevelRoute.Calendar.baseRoute}?showAdd={showAdd}",
+                route = "individualContact/{contactId}",
                 arguments = listOf(
-                    navArgument("showAdd") {
-                        defaultValue = false
-                        type = NavType.BoolType
-                    }
+                    navArgument("contactId") { type = NavType.StringType }
                 )
             ) { backStackEntry ->
+                val arguments = backStackEntry.arguments
+                val contactId = (if (arguments != null) arguments.getString("contactId") else null)
+                    ?: return@composable
+                val viewModel: ContactsViewModel = koinViewModel()
 
-                val showAdd =
-                    navController.currentBackStackEntry
-                        ?.destination
-                        ?.route
-                        ?.contains("showAdd=true") == true
+                // Triggers the ViewModel to fetch the contact data when the screen loads
+                LaunchedEffect(contactId) {
+                    viewModel.selectContact(contactId)
+                }
 
-                CalendarScreen(
-                    viewModel = koinViewModel(),
-                    initialShowAdd = showAdd,
+                IndividualContactScreen(
+                    viewModel = viewModel,
+                    onNavigateToHome = {
+                        navController.navigate(TopLevelRoute.Home.baseRoute) {
+                            popUpTo(TopLevelRoute.Home.baseRoute) { inclusive = true }
+                        }
+                    },
                     onBack = { navController.navigateUp() }
                 )
             }

@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         val db: AppDB = getDatabaseInstance(getDatabaseBuilder(applicationContext))
         val dao = db.getDao()
 
-        initKoin(dao)
+        initKoin(dao, applicationContext)
 
         setContent {
             App()

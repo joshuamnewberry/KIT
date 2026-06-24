@@ -2,9 +2,9 @@ package edu.gvsu.cis.kit
 
 import edu.gvsu.cis.kit.data.AppDAO
 import edu.gvsu.cis.kit.data.KITRepository
-import edu.gvsu.cis.kit.viewModels.CalendarViewModel
 import edu.gvsu.cis.kit.viewModels.ContactsViewModel
 import edu.gvsu.cis.kit.viewModels.HomeViewModel
+import edu.gvsu.cis.kit.viewModels.RemindersViewModel
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 
@@ -15,13 +15,21 @@ fun appModule(dao: AppDAO) = module {
 
     factory { HomeViewModel(get()) }
     factory { ContactsViewModel(get()) }
-    factory { CalendarViewModel(get()) }
+    factory { RemindersViewModel(get()) }
 }
 
-fun initKoin(dao: AppDAO) {
+// Updated to accept context, which will be passed to platform-specific initializers
+fun initKoin(dao: AppDAO, context: Any? = null) {
     try {
         startKoin {
             modules(appModule(dao))
         }
+        // Initialize platform context
+        if (context != null) {
+            initAndroidPlatform(context)
+        }
     } catch (_: Exception) { }
 }
+
+// Platform-specific hook (actual implementations define this)
+expect fun initAndroidPlatform(context: Any)

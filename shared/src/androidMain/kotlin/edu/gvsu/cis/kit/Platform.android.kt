@@ -1,29 +1,46 @@
 package edu.gvsu.cis.kit
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 
-class AndroidPlatform : Platform {
+class AndroidPlatform(private val context: Context) : Platform {
     override val name: String = "Android ${Build.VERSION.SDK_INT}"
 }
 
-actual fun getPlatform(): Platform = AndroidPlatform()
+private lateinit var appContext: Context
 
-actual fun requestContactImport() {
-    // TODO: Implement Android ActivityResultLauncher for ContactsContract (KIT-46)
+actual fun getPlatform(): Platform = AndroidPlatform(appContext)
+
+actual fun initAndroidPlatform(context: Any) {
+    appContext = context as Context
 }
 
 actual fun triggerCallIntent(phoneNumber: String) {
-    // TODO: Implement Android Intent.ACTION_DIAL (KIT-47)
+    val intent = Intent(Intent.ACTION_DIAL).apply {
+        data = Uri.parse("tel:$phoneNumber")
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    appContext.startActivity(intent)
+}
+
+actual fun requestContactImport() {
+    // KIT-46: Implement ContactsContract logic
 }
 
 actual fun triggerSmsIntent(phoneNumber: String) {
-    // TODO: Implement Android Intent.ACTION_SENDTO (KIT-48)
+    val intent = Intent(Intent.ACTION_SENDTO).apply {
+        data = Uri.parse("smsto:$phoneNumber")
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    appContext.startActivity(intent)
 }
 
 actual fun requestNotificationPermission() {
-    // TODO: Implement Android POST_NOTIFICATIONS permission request (KIT-49)
+    // KIT-49: Implement Android POST_NOTIFICATIONS
 }
 
 actual fun scheduleBackgroundTasks() {
-    // TODO: Implement Android WorkManager task scheduling (KIT-83)
+    // KIT-83: Implement WorkManager
 }

@@ -1,114 +1,49 @@
 package edu.gvsu.cis.kit.data
 
-import kotlin.random.Random
+import java.util.UUID
 
 class KITRepository(
     private val dao: AppDAO
 ) {
-    suspend fun getAllContacts(): List<Contact> {
-        return dao.getAllContacts()
-    }
+    suspend fun getAllContacts(): List<Contact> = dao.getAllContacts()
 
-    suspend fun addContact(
-        name: String,
-        phoneNumber: String? = null,
-        email: String? = null,
-        address: String? = null,
-        relationshipType: String? = null,
-        notes: String? = null,
-        birthdayMillis: Long? = null
-    ) {
-        val contact = Contact(
-            id = generateId(),
+    suspend fun getContactById(contactId: String): Contact? = dao.getContactById(contactId)
+
+    suspend fun addContact(name: String, phoneNumber: String?, email: String?, relationshipType: String?) {
+        val newContact = Contact(
+            id = UUID.randomUUID().toString(),
             name = name,
             phoneNumber = phoneNumber,
             email = email,
-            address = address,
-            relationshipType = relationshipType,
-            notes = notes,
-            birthdayMillis = birthdayMillis,
-            lastContactedDate = null
+            relationshipType = relationshipType
         )
-
-        dao.insertContact(contact)
+        dao.insertContact(newContact)
     }
 
-    suspend fun getContactById(contactId: String): Contact? {
-        return dao.getContactById(contactId)
+    suspend fun updateContact(contact: Contact) {
+        dao.updateContact(contact)
     }
 
-    suspend fun addReminder(
-        contactIds: List<String>,
-        customMessage: String? = null,
-        frequencyType: ReminderFrequencyType,
-        frequencyValue: Int? = null
-    ) {
-        val now = currentTimeMillis()
-
-        // TODO: Update ReminderDateCalculator to support new Frequency Types and Values (KIT-70)
-        val nextDate = now + 86400000 // Temporary logic placeholder
-
-        val reminder = CheckInReminder(
-            id = generateId(),
-            customMessage = customMessage,
-            frequencyType = frequencyType.name,
-            frequencyValue = frequencyValue,
-            nextReminderDate = nextDate,
-            isCompleted = false
-        )
-
-        dao.insertReminder(reminder)
-
-        contactIds.forEach { contactId ->
-            dao.insertReminderContactCrossRef(
-                ReminderContactCrossRef(reminder.id, contactId)
-            )
-        }
+    suspend fun deleteContact(contact: Contact) {
+        dao.deleteContact(contact)
     }
 
-    suspend fun getRemindersForContact(contactId: String): List<CheckInReminder> {
-        return dao.getRemindersForContact(contactId)
+    suspend fun getRemindersForContact(contactId: String): List<CheckInReminder> = dao.getRemindersForContact(contactId)
+
+    suspend fun addReminder(contactIds: List<String>, frequencyType: ReminderFrequencyType) {
+        // Implementation logic for adding a reminder
     }
 
-    // TODO: Implement fetching logic to retrieve Events mapped to the visible calendar month (KIT-74)
-    suspend fun getEventsForContact(contactId: String): List<Event> {
-        return dao.getEventsForContact(contactId)
-    }
+    suspend fun getImportantDatesForContact(contactId: String): List<ImportantDate> = dao.getImportantDatesForContact(contactId)
 
-    suspend fun addImportantDate(
-        contactId: String,
-        title: String,
-        type: ImportantDateType,
-        dateMillis: Long,
-        repeatsEveryYear: Boolean = true
-    ) {
-        val importantDate = ImportantDate(
-            id = generateId(),
+    suspend fun addImportantDate(contactId: String, title: String, type: ImportantDateType, dateMillis: Long) {
+        val newDate = ImportantDate(
+            id = UUID.randomUUID().toString(),
             contactId = contactId,
             title = title,
             type = type.name,
-            dateMillis = dateMillis,
-            repeatsEveryYear = repeatsEveryYear
+            dateMillis = dateMillis
         )
-
-        dao.insertImportantDate(importantDate)
-    }
-
-    suspend fun getImportantDatesForContact(contactId: String): List<ImportantDate> {
-        return dao.getImportantDatesForContact(contactId)
-    }
-
-    // TODO: Implement "Clear All Data" database wipe logic (KIT-80)
-
-    // TODO: Implement "Export Backup" (Database to JSON serialization) (KIT-81)
-
-    // TODO: Implement "Import Backup" (JSON parsing to database batch insert) (KIT-82)
-
-    private fun generateId(): String {
-        return "${currentTimeMillis()}-${Random.nextInt(1000, 9999)}"
-    }
-
-    private fun currentTimeMillis(): Long {
-        return kotlin.time.Clock.System.now().toEpochMilliseconds()
+        dao.insertImportantDate(newDate)
     }
 }

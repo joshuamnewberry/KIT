@@ -9,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -28,7 +27,6 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToSettings: () -> Unit,
     onNavigateToContactList: (Boolean) -> Unit,
-    onNavigateToCalendar: (Boolean) -> Unit,
     onNavigateToReminders: (Boolean) -> Unit
 ) {
     val weeklyCount by viewModel.weeklyContactsCount.collectAsState()
@@ -68,16 +66,6 @@ fun HomeScreen(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             icon = { Icon(Icons.Default.Person, contentDescription = "Add Contact") },
                             text = { Text("Add Contact") },
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
-                        ExtendedFloatingActionButton(
-                            onClick = {
-                                isFabExpanded = false
-                                onNavigateToCalendar(true)
-                            },
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            icon = { Icon(Icons.Default.DateRange, contentDescription = "Add Event") },
-                            text = { Text("Add Event") },
                             modifier = Modifier.padding(bottom = 12.dp)
                         )
                         ExtendedFloatingActionButton(

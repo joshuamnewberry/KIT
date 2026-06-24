@@ -2,12 +2,9 @@ package edu.gvsu.cis.kit.viewModels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import edu.gvsu.cis.kit.data.CheckInReminder
-import edu.gvsu.cis.kit.data.Contact
-import edu.gvsu.cis.kit.data.ImportantDate
-import edu.gvsu.cis.kit.data.ImportantDateType
-import edu.gvsu.cis.kit.data.KITRepository
-import edu.gvsu.cis.kit.data.ReminderFrequencyType
+import edu.gvsu.cis.kit.data.*
+import edu.gvsu.cis.kit.triggerCallIntent
+import edu.gvsu.cis.kit.triggerSmsIntent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,32 +15,34 @@ class ContactsViewModel(
 ) : ViewModel() {
 
     private val _contacts = MutableStateFlow<List<Contact>>(emptyList())
-
     private val _filteredContacts = MutableStateFlow<List<Contact>>(emptyList())
     val filteredContacts: StateFlow<List<Contact>> = _filteredContacts.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    // State for Individual Contact Screen
     private val _selectedContact = MutableStateFlow<Contact?>(null)
     val selectedContact: StateFlow<Contact?> = _selectedContact.asStateFlow()
 
     private val _selectedContactReminders = MutableStateFlow<List<CheckInReminder>>(emptyList())
     val selectedContactReminders: StateFlow<List<CheckInReminder>> = _selectedContactReminders.asStateFlow()
 
-    private val _importantDates = MutableStateFlow<List<ImportantDate>>(emptyList())
-    val importantDates: StateFlow<List<ImportantDate>> = _importantDates.asStateFlow()
-
-    init {
-        loadContacts()
-    }
+    init { loadContacts() }
 
     fun loadContacts() {
         viewModelScope.launch {
-            val allContacts = repository.getAllContacts()
-            _contacts.value = allContacts
+            _contacts.value = repository.getAllContacts()
             applySearchFilter(_searchQuery.value)
+        }
+    }
+
+    fun deleteContact(contactId: String) {
+        viewModelScope.launch {
+            val contact = repository.getContactById(contactId)
+            if (contact != null) {
+                repository.deleteContact(contact)
+                loadContacts()
+            }
         }
     }
 
@@ -67,58 +66,40 @@ class ContactsViewModel(
         viewModelScope.launch {
             _selectedContact.value = repository.getContactById(contactId)
             _selectedContactReminders.value = repository.getRemindersForContact(contactId)
-            _importantDates.value = repository.getImportantDatesForContact(contactId)
         }
     }
 
-    fun addContact(
-        name: String,
-        phoneNumber: String,
-        email: String,
-        relationshipType: String
-    ) {
+    fun updateContact(updatedContact: Contact) {
         viewModelScope.launch {
-            repository.addContact(
-                name = name,
-                phoneNumber = phoneNumber.ifBlank { null },
-                email = email.ifBlank { null },
-                relationshipType = relationshipType.ifBlank { null }
-            )
+            repository.updateContact(updatedContact)
+            _selectedContact.value = updatedContact
             loadContacts()
         }
     }
 
-    fun addWeeklyReminder(contactId: String) {
+    fun updateNotes(contactId: String, newNotes: String) {
         viewModelScope.launch {
-            // Fixed: Now wraps contactId in a List and uses the new Enum
-            repository.addReminder(
-                contactIds = listOf(contactId),
-                frequencyType = ReminderFrequencyType.WEEKLY
-            )
-            _selectedContactReminders.value = repository.getRemindersForContact(contactId)
+            val current = _selectedContact.value
+            if (current?.id == contactId) {
+                val updated = current.copy(notes = newNotes)
+                repository.updateContact(updated)
+                _selectedContact.value = updated
+            }
         }
     }
 
-    fun addMonthlyReminder(contactId: String) {
-        viewModelScope.launch {
-            // Fixed: Now wraps contactId in a List and uses the new Enum
-            repository.addReminder(
-                contactIds = listOf(contactId),
-                frequencyType = ReminderFrequencyType.MONTHLY
-            )
-            _selectedContactReminders.value = repository.getRemindersForContact(contactId)
-        }
+    fun triggerCall(phoneNumber: String) {
+        if (phoneNumber.isNotBlank()) triggerCallIntent(phoneNumber)
     }
 
-    fun addBirthday(contactId: String, title: String, dateMillis: Long) {
+    fun triggerMessage(phoneNumber: String) {
+        if (phoneNumber.isNotBlank()) triggerSmsIntent(phoneNumber)
+    }
+
+    fun addContact(name: String, phoneNumber: String, email: String, relationshipType: String) {
         viewModelScope.launch {
-            repository.addImportantDate(
-                contactId = contactId,
-                title = title,
-                type = ImportantDateType.BIRTHDAY,
-                dateMillis = dateMillis
-            )
-            _importantDates.value = repository.getImportantDatesForContact(contactId)
+            repository.addContact(name, phoneNumber.ifBlank { null }, email.ifBlank { null }, relationshipType.ifBlank { null })
+            loadContacts()
         }
     }
 }

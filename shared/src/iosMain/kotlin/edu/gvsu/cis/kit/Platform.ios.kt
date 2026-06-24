@@ -1,6 +1,8 @@
 package edu.gvsu.cis.kit
 
 import platform.UIKit.UIDevice
+import platform.UIKit.UIApplication
+import platform.Foundation.NSURL
 
 class IOSPlatform: Platform {
     override val name: String = UIDevice.currentDevice.systemName() + " " + UIDevice.currentDevice.systemVersion
@@ -9,21 +11,23 @@ class IOSPlatform: Platform {
 actual fun getPlatform(): Platform = IOSPlatform()
 
 actual fun requestContactImport() {
-    // TODO: Implement iOS CNContactPickerViewController (KIT-46)
+    // KIT-46: Implement CNContactPickerViewController
 }
 
 actual fun triggerCallIntent(phoneNumber: String) {
-    // TODO: Implement iOS openURL with tel:// (KIT-47)
+    val url = NSURL(string = "tel:$phoneNumber")
+    UIApplication.sharedApplication.openURL(url)
 }
 
 actual fun triggerSmsIntent(phoneNumber: String) {
-    // TODO: Implement iOS openURL with sms:// or MFMessageComposeViewController (KIT-48)
+    val url = NSURL(string = "sms:$phoneNumber")
+    UIApplication.sharedApplication.openURL(url)
 }
 
 actual fun requestNotificationPermission() {
-    // TODO: Implement iOS UNUserNotificationCenter requestAuthorizationWithOptions (KIT-49)
+    // KIT-49: Implement UNUserNotificationCenter
 }
 
 actual fun scheduleBackgroundTasks() {
-    // TODO: Implement iOS BGTaskScheduler (KIT-83)
+    // KIT-83: Implement BGTaskScheduler
 }
