@@ -4,7 +4,7 @@ This document describes the testing strategy for KIT (Keep In Touch), covering a
 
 ## Testing Strategy
 
-KIT separates its logic into a shared Kotlin Multiplatform module, a data layer (DAO + repository), ViewModels, and platform UI. Testing focuses on the shared data layer, where the core application logic lives, because it is platform-independent and the highest-value code to verify automatically. UI and platform-specific behavior (notifications, navigation) are verified through manual testing on Android and iOS.
+KIT separates its logic into a shared Kotlin Multiplatform module, a data layer (DAO + repository), ViewModels, and platform UI. Testing focuses on the shared data layer, where the core application logic lives, because it is platform-independent and the highest-value code to verify automatically. UI and platform-specific behavior (notifications, navigation) are verified through manual testing.
 
 ## Frameworks and Tools
 
@@ -16,7 +16,7 @@ KIT separates its logic into a shared Kotlin Multiplatform module, a data layer 
 
 ### Unit and Integration Tests — Data Layer (`AppDaoTest`)
 
-The data access layer is verified using a `FakeAppDAO`, an in-memory implementation of the `AppDAO` interface. This allows the DAO contract and the relationships between entities to be tested without a live database, while still exercising real logic (filtering, sorting, and cross-reference joins). Because these tests verify multiple entities working together through their relationships (contacts linked to reminders and events), they function as integration tests of the data layer in addition to unit-testing individual operations.
+The data access layer is verified using a `FakeAppDAO`, an in-memory implementation of the `AppDAO` interface. This allows the DAO contract and the relationships between entities to be tested without a live database, while still exercising real logic (filtering, sorting, counting, and cross-reference joins). Because these tests verify multiple entities working together through their relationships (contacts linked to reminders and events), they function as integration tests of the data layer in addition to unit-testing individual operations.
 
 Coverage includes:
 
@@ -46,6 +46,9 @@ Coverage includes:
 - Upcoming dates are returned at or before a threshold (boundary verified)
 - Update and delete important dates
 
+**Weekly Interaction Count**
+- Counts only logged interactions (events) that fall within the given time window, excluding older interactions (boundary verified)
+
 ### Platform Smoke Tests
 
 `SharedLogicAndroidHostTest` and `SharedLogicIOSTest` are minimal tests that confirm the test runner and shared module build and execute correctly on each platform target. They do not test application logic.
@@ -66,24 +69,29 @@ iOS:
 
 ## Continuous Integration
 
-All automated tests run through GitHub Actions on every push and pull request. A passing run is required, which ensures changes to the shared data layer do not introduce regressions. The current build is passing.
+All automated tests run through GitHub Actions on every push and pull request, across two jobs: Android unit tests and iOS unit test compilation. A passing run is required, which ensures changes to the shared data layer do not introduce regressions. The current build is passing.
 
 ## Manual Testing
 
-Platform-specific behavior that is not covered by automated tests is verified manually on Android and iOS.
+Platform-specific and UI behavior not covered by automated tests is verified manually on the Android emulator.
 
 **Home Screen**
 - Application launches successfully
-- Weekly summary displays
+- Weekly summary displays a real count of contacts to reach out to
 - Navigation buttons function properly
 
 **Contacts**
 - Contact list loads
+- Contacts can be added and persist across app restarts
 - Contact details can be viewed
+
+**Reminders**
+- Reminders can be created and linked to contacts
+- Due reminders surface on the Home screen
 
 **Notifications**
 - Notification permissions are requested
-- Notifications are delivered on iOS
+- Reminder notifications are delivered
 
 **Settings**
 - Settings screen loads
@@ -91,6 +99,6 @@ Platform-specific behavior that is not covered by automated tests is verified ma
 
 ## Known Gaps and Future Work
 
-- `getWeeklyInteractionCount` currently returns a placeholder value and is not yet backed by a real query; it is intentionally excluded from the automated suite until implemented. The Home screen weekly summary depends on this method.
 - ViewModel and repository layers are not yet covered by automated tests and are currently verified manually.
 - Integration testing against a real (non-fake) Room database and Firebase Firestore is planned but not yet implemented.
+- The full iOS application build is currently blocked by a Room/KSP code-generation incompatibility on the Kotlin/Native target (see Risk Analysis). The shared logic and tests still compile for iOS in CI; only the full app assembly is affected.
