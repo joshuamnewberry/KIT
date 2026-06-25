@@ -128,6 +128,6 @@ class FakeAppDAO : AppDAO {
     }
 
     override suspend fun getWeeklyInteractionCount(startOfWeekMillis: Long): Int {
-        return 0
+        return events.count { it.timestampMillis >= startOfWeekMillis }
     }
 }
