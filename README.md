@@ -154,38 +154,13 @@ Run using Xcode.
 
 ## Risk Analysis
 
-### Risks Encountered
-
-* Kotlin Multiplatform learning curve
-* Team merge conflicts
-* Firebase integration challenges
-* iOS build configuration issues
-* Time constraints near project deadlines
-
-### Mitigation
-
-* Frequent GitHub commits
-* Jira sprint planning
-* Team communication
-* Incremental testing
-* Scope management
+A full risk analysis — including risks encountered, mitigation strategies, and what could have been done better — is documented in [RiskAnalysis.md](RiskAnalysis.md).
 
 ---
 
 ## Retrospective
 
-### Successes
-
-* Successful KMP implementation
-* Cross-platform Android and iOS support
-* Functional notification system
-* Effective use of GitHub and Jira
-
-### Improvements
-
-* Earlier testing implementation
-* More integration testing throughout development
-* Better time allocation for advanced features
+A full retrospective covering what went well, what could be improved, and lessons learned is documented in [Retrospective.md](Retrospective.md).
 
 ---
 
