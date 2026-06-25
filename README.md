@@ -189,6 +189,15 @@ Run using Xcode.
 
 ---
 
+
+## Project Management (Jira)
+
+The team used Jira for sprint planning and task tracking throughout the project.
+Screenshots of the Jira board and sprints are in the
+[Jira_Screenshots](https://github.com/joshuamnewberry/KIT/tree/main/Jira_Screenshots) folder.
+
+---
+
 ## Repository
 
 https://github.com/joshuamnewberry/KIT
