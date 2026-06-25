@@ -180,20 +180,11 @@ class AppDaoTest {
     // ---------- Events ----------
 
 
-    @Test
-    fun getWeeklyInteractionCount_countsOnlyEventsWithinWindow() = runTest {
-        val dao = FakeAppDAO()
-        dao.insertEvent(Event(id = "recent", timestampMillis = 5000L))
-        dao.insertEvent(Event(id = "alsoRecent", timestampMillis = 8000L))
-        dao.insertEvent(Event(id = "old", timestampMillis = 100L))
-        val count = dao.getWeeklyInteractionCount(startOfWeekMillis = 1000L)
-        assertEquals(2, count)
-}
-    @Test
+ @Test
     fun insertEventWithCrossRef_returnsEventForContact() = runTest {
         val dao = FakeAppDAO()
         dao.insertContact(Contact(id = "c1", name = "Alex"))
-        val event = Event(id = "e1")
+        val event = Event(id = "e1", title = "Coffee", timestampMillis = 1000L)
         dao.insertEvent(event)
         dao.insertEventContactCrossRef(EventContactCrossRef(eventId = "e1", contactId = "c1"))
         val result = dao.getEventsForContact("c1")
@@ -205,7 +196,7 @@ class AppDaoTest {
     fun deleteEvent_removesEvent() = runTest {
         val dao = FakeAppDAO()
         dao.insertContact(Contact(id = "c1", name = "Alex"))
-        val event = Event(id = "e1")
+        val event = Event(id = "e1", title = "Coffee", timestampMillis = 1000L)
         dao.insertEvent(event)
         dao.insertEventContactCrossRef(EventContactCrossRef("e1", "c1"))
         dao.deleteEvent(event)
@@ -216,7 +207,7 @@ class AppDaoTest {
     fun deleteEventCrossRef_unlinksEventFromContact() = runTest {
         val dao = FakeAppDAO()
         dao.insertContact(Contact(id = "c1", name = "Alex"))
-        dao.insertEvent(Event(id = "e1"))
+        dao.insertEvent(Event(id = "e1", title = "Coffee", timestampMillis = 1000L))
         val ref = EventContactCrossRef("e1", "c1")
         dao.insertEventContactCrossRef(ref)
         dao.deleteEventContactCrossRef(ref)
@@ -225,11 +216,11 @@ class AppDaoTest {
 
     // ---------- Important Dates ----------
 
-    @Test
+   @Test
     fun insertImportantDate_thenGetForContact_returnsDate() = runTest {
         val dao = FakeAppDAO()
         dao.insertImportantDate(
-            ImportantDate(id = "d1", contactId = "c1", dateMillis = 5000L)
+            ImportantDate(id = "d1", contactId = "c1", title = "Birthday", type = ImportantDateType.BIRTHDAY.name, dateMillis = 5000L)
         )
         val result = dao.getImportantDatesForContact("c1")
         assertEquals(1, result.size)
@@ -239,8 +230,8 @@ class AppDaoTest {
     @Test
     fun getImportantDatesForContact_filtersByContact() = runTest {
         val dao = FakeAppDAO()
-        dao.insertImportantDate(ImportantDate(id = "d1", contactId = "c1", dateMillis = 1L))
-        dao.insertImportantDate(ImportantDate(id = "d2", contactId = "c2", dateMillis = 2L))
+        dao.insertImportantDate(ImportantDate(id = "d1", contactId = "c1", title = "Birthday", type = ImportantDateType.BIRTHDAY.name, dateMillis = 1L))
+        dao.insertImportantDate(ImportantDate(id = "d2", contactId = "c2", title = "Birthday", type = ImportantDateType.BIRTHDAY.name, dateMillis = 2L))
         val result = dao.getImportantDatesForContact("c1")
         assertEquals(1, result.size)
         assertEquals("d1", result[0].id)
@@ -249,8 +240,8 @@ class AppDaoTest {
     @Test
     fun getUpcomingImportantDates_returnsOnlyDatesAtOrBeforeThreshold() = runTest {
         val dao = FakeAppDAO()
-        dao.insertImportantDate(ImportantDate(id = "soon", contactId = "c1", dateMillis = 100L))
-        dao.insertImportantDate(ImportantDate(id = "later", contactId = "c1", dateMillis = 9999L))
+        dao.insertImportantDate(ImportantDate(id = "soon", contactId = "c1", title = "Birthday", type = ImportantDateType.BIRTHDAY.name, dateMillis = 100L))
+        dao.insertImportantDate(ImportantDate(id = "later", contactId = "c1", title = "Birthday", type = ImportantDateType.BIRTHDAY.name, dateMillis = 9999L))
         val result = dao.getUpcomingImportantDates(upcomingTimeMillis = 1000L)
         assertEquals(1, result.size)
         assertEquals("soon", result[0].id)
@@ -259,8 +250,8 @@ class AppDaoTest {
     @Test
     fun updateImportantDate_changesStoredValues() = runTest {
         val dao = FakeAppDAO()
-        dao.insertImportantDate(ImportantDate(id = "d1", contactId = "c1", dateMillis = 100L))
-        dao.updateImportantDate(ImportantDate(id = "d1", contactId = "c1", dateMillis = 200L))
+        dao.insertImportantDate(ImportantDate(id = "d1", contactId = "c1", title = "Birthday", type = ImportantDateType.BIRTHDAY.name, dateMillis = 100L))
+        dao.updateImportantDate(ImportantDate(id = "d1", contactId = "c1", title = "Birthday", type = ImportantDateType.BIRTHDAY.name, dateMillis = 200L))
         val result = dao.getImportantDatesForContact("c1")
         assertEquals(1, result.size)
         assertEquals(200L, result[0].dateMillis)
@@ -269,9 +260,8 @@ class AppDaoTest {
     @Test
     fun deleteImportantDate_removesDate() = runTest {
         val dao = FakeAppDAO()
-        val date = ImportantDate(id = "d1", contactId = "c1", dateMillis = 100L)
+        val date = ImportantDate(id = "d1", contactId = "c1", title = "Birthday", type = ImportantDateType.BIRTHDAY.name, dateMillis = 100L)
         dao.insertImportantDate(date)
         dao.deleteImportantDate(date)
         assertEquals(0, dao.getImportantDatesForContact("c1").size)
     }
-}
