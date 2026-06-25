@@ -73,7 +73,7 @@ interface AppDAO {
     """)
     suspend fun getEventsForContact(contactId: String): List<Event>
 
-    @Query("SELECT COUNT(*) FROM Event WHERE timestampMillis >= :startOfWeekMillis")
+    @Query("SELECT COUNT(*) FROM events WHERE timestampMillis >= :startOfWeekMillis")
     suspend fun getWeeklyInteractionCount(startOfWeekMillis: Long): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
