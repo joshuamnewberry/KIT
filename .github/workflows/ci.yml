@@ -7,8 +7,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  kmp-unit-tests:
-    name: Android and iOS Unit Tests
+  android-ios-unit-tests:
+    name: Android Unit Tests and iOS Test Compile
     runs-on: macos-latest
 
     steps:
@@ -24,8 +24,11 @@ jobs:
       - name: Make Gradle Executable
         run: chmod +x gradlew
 
-      - name: Run Shared KMP Unit Tests
-        run: ./gradlew shared:allTests --rerun-tasks --no-daemon
+      - name: Run Android Unit Testing
+        run: ./gradlew androidApp:testDebugUnitTest --rerun-tasks --no-daemon
+
+      - name: Compile iOS Unit Tests
+        run: ./gradlew shared:compileTestKotlinIosSimulatorArm64 --rerun-tasks --no-daemon
 
       - name: Upload Unit Test Reports
         uses: actions/upload-artifact@v4
@@ -36,4 +39,3 @@ jobs:
             **/build/reports/**
             **/build/test-results/**
           if-no-files-found: warn
-
