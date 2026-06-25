@@ -169,7 +169,7 @@ A full retrospective covering what went well, what could be improved, and lesson
 
 The team used Jira for sprint planning and task tracking throughout the project.
 A screenshot of the Jira board is included here:
-[Jira_Screenshots.png]((https://github.com/joshuamnewberry/KIT/tree/main/Jira%20Screenshots))
+[Jira Board Screenshots](https://github.com/joshuamnewberry/KIT/tree/main/Jira%20Screenshots)
 
 ---
 
