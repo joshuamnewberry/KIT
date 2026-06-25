@@ -73,7 +73,7 @@ interface AppDAO {
     """)
     suspend fun getEventsForContact(contactId: String): List<Event>
 
-    @Query("SELECT COUNT(DISTINCT event_contact_cross_ref.contactId) FROM events INNER JOIN event_contact_cross_ref ON events.id = event_contact_cross_ref.eventId WHERE events.timestampMillis >= :startOfWeekMillis")
+    @Query("SELECT COUNT(*) FROM events WHERE timestampMillis >= :startOfWeekMillis")
     suspend fun getWeeklyInteractionCount(startOfWeekMillis: Long): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

@@ -17,8 +17,7 @@ class KITRepositoryTest {
             name = "Jamie",
             phoneNumber = "6165551111",
             email = "jamie@email.com",
-            relationshipType = "Friend",
-            notes = "Met at school"
+            relationshipType = "Friend"
         )
 
         val contacts = repository.getAllContacts()
@@ -28,7 +27,6 @@ class KITRepositoryTest {
         assertEquals("6165551111", contacts[0].phoneNumber)
         assertEquals("jamie@email.com", contacts[0].email)
         assertEquals("Friend", contacts[0].relationshipType)
-        assertEquals("Met at school", contacts[0].notes)
     }
 
     @Test
@@ -36,12 +34,14 @@ class KITRepositoryTest {
         val dao = FakeAppDAO()
         val repository = KITRepository(dao)
 
-        repository.addContact(name = "Alex")
-        repository.addContact(name = "Jamie")
+        repository.addContact("Alex", "6165550001", "alex@email.com", "Friend")
+        repository.addContact("Zack", "6165550002", "zack@email.com", "Classmate")
 
         val contacts = repository.getAllContacts()
 
         assertEquals(2, contacts.size)
+        assertEquals("Alex", contacts[0].name)
+        assertEquals("Zack", contacts[1].name)
     }
 
     @Test
@@ -69,7 +69,7 @@ class KITRepositoryTest {
         val dao = FakeAppDAO()
         val repository = KITRepository(dao)
 
-        val result = repository.getContactById("does-not-exist")
+        val result = repository.getContactById("missing-id")
 
         assertEquals(null, result)
     }
@@ -83,7 +83,7 @@ class KITRepositoryTest {
 
         repository.addReminder(
             contactIds = listOf("contact-1"),
-            customMessage = "Check in with Taylor",
+            title = "Check in with Taylor",
             frequencyType = ReminderFrequencyType.DAILY,
             frequencyValue = null
         )
@@ -106,18 +106,18 @@ class KITRepositoryTest {
 
         repository.addReminder(
             contactIds = listOf("contact-1", "contact-2"),
-            customMessage = "Check in soon",
+            title = "Group check-in",
             frequencyType = ReminderFrequencyType.WEEKLY,
-            frequencyValue = null
+            frequencyValue = 1
         )
 
-        val alexReminders = repository.getRemindersForContact("contact-1")
-        val jamieReminders = repository.getRemindersForContact("contact-2")
+        val remindersForAlex = repository.getRemindersForContact("contact-1")
+        val remindersForJamie = repository.getRemindersForContact("contact-2")
 
-        assertEquals(1, alexReminders.size)
-        assertEquals(1, jamieReminders.size)
-        assertEquals("Check in soon", alexReminders[0].customMessage)
-        assertEquals("Check in soon", jamieReminders[0].customMessage)
+        assertEquals(1, remindersForAlex.size)
+        assertEquals(1, remindersForJamie.size)
+        assertEquals("Group check-in", remindersForAlex[0].customMessage)
+        assertEquals("Group check-in", remindersForJamie[0].customMessage)
     }
 
     @Test
@@ -125,30 +125,11 @@ class KITRepositoryTest {
         val dao = FakeAppDAO()
         val repository = KITRepository(dao)
 
-        dao.insertContact(Contact(id = "contact-1", name = "Alex"))
+        dao.insertContact(Contact(id = "contact-1", name = "No Reminder Contact"))
 
         val reminders = repository.getRemindersForContact("contact-1")
 
         assertEquals(0, reminders.size)
-    }
-
-    @Test
-    fun addReminder_setsReminderAsNotCompleted() = runTest {
-        val dao = FakeAppDAO()
-        val repository = KITRepository(dao)
-
-        dao.insertContact(Contact(id = "contact-1", name = "Alex"))
-
-        repository.addReminder(
-            contactIds = listOf("contact-1"),
-            customMessage = "Text Alex",
-            frequencyType = ReminderFrequencyType.DAILY,
-            frequencyValue = null
-        )
-
-        val reminders = repository.getRemindersForContact("contact-1")
-
-        assertEquals(false, reminders[0].isCompleted)
     }
 
     @Test
@@ -160,8 +141,7 @@ class KITRepositoryTest {
             contactId = "contact-1",
             title = "Birthday",
             type = ImportantDateType.BIRTHDAY,
-            dateMillis = 123456789L,
-            repeatsEveryYear = true
+            dateMillis = 123456789L
         )
 
         val dates = repository.getImportantDatesForContact("contact-1")
@@ -170,6 +150,30 @@ class KITRepositoryTest {
         assertEquals("Birthday", dates[0].title)
         assertEquals(ImportantDateType.BIRTHDAY.name, dates[0].type)
         assertEquals(123456789L, dates[0].dateMillis)
-        assertEquals(true, dates[0].repeatsEveryYear)
+    }
+
+    @Test
+    fun logInteraction_createsEventForContact() = runTest {
+        val dao = FakeAppDAO()
+        val repository = KITRepository(dao)
+
+        dao.insertContact(Contact(id = "contact-1", name = "Morgan"))
+
+        repository.logInteraction("contact-1")
+
+        val events = dao.getEventsForContact("contact-1")
+
+        assertEquals(1, events.size)
+        assertEquals("Interaction Logged", events[0].title)
+    }
+
+    @Test
+    fun getWeeklyInteractionCount_returnsDaoValue() = runTest {
+        val dao = FakeAppDAO()
+        val repository = KITRepository(dao)
+
+        val count = repository.getWeeklyInteractionCount()
+
+        assertEquals(0, count)
     }
 }

@@ -1,4 +1,4 @@
-name: Android Unit Testing
+name: Android and iOS Unit Testing
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
       - name: Run Android Unit Testing
         run: ./gradlew androidApp:testDebugUnitTest --rerun-tasks --no-daemon
 
-      - name: Upload Build Reports
+      - name: Upload Android Test Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -37,3 +37,22 @@ jobs:
             **/build/test-results/**
           if-no-files-found: warn
 
+  ios-build-verification:
+    name: iOS Unit Test Compile
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Make Gradle Executable
+        run: chmod +x gradlew
+
+      - name: Compile iOS Unit Test Source
+        run: ./gradlew shared:compileTestKotlinIosSimulatorArm64 -x shared:kspKotlinIosSimulatorArm64 -x shared:kspTestKotlinIosSimulatorArm64 --rerun-tasks --no-daemon

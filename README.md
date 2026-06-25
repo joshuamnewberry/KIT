@@ -44,15 +44,15 @@ The application follows the MVVM (Model-View-ViewModel) architecture.
 * Home Screen
 * Contacts Screen
 * Individual Contact Screen
-* Calendar Screen
-* Reminder Screen
+* Add Contact Screen
+* Reminders Screen
 * Settings Screen
 
 #### ViewModels
 
 * HomeViewModel
 * ContactsViewModel
-* CalendarViewModel
+* RemindersViewModel
 
 #### Data Layer
 
@@ -154,38 +154,22 @@ Run using Xcode.
 
 ## Risk Analysis
 
-### Risks Encountered
-
-* Kotlin Multiplatform learning curve
-* Team merge conflicts
-* Firebase integration challenges
-* iOS build configuration issues
-* Time constraints near project deadlines
-
-### Mitigation
-
-* Frequent GitHub commits
-* Jira sprint planning
-* Team communication
-* Incremental testing
-* Scope management
+A full risk analysis — including risks encountered, mitigation strategies, and what could have been done better — is documented in [RiskAnalysis.md](RiskAnalysis.md).
 
 ---
 
 ## Retrospective
 
-### Successes
+A full retrospective covering what went well, what could be improved, and lessons learned is documented in [Retrospective.md](Retrospective.md).
 
-* Successful KMP implementation
-* Cross-platform Android and iOS support
-* Functional notification system
-* Effective use of GitHub and Jira
+---
 
-### Improvements
 
-* Earlier testing implementation
-* More integration testing throughout development
-* Better time allocation for advanced features
+## Project Management (Jira)
+
+The team used Jira for sprint planning and task tracking throughout the project.
+A screenshot of the Jira board is included here:
+[Jira Board Screenshots](https://github.com/joshuamnewberry/KIT/tree/main/Jira%20Screenshots)
 
 ---
 
