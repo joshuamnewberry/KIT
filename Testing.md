@@ -49,6 +49,21 @@ Coverage includes:
 **Weekly Interaction Count**
 - Counts only logged interactions (events) that fall within the given time window, excluding older interactions (boundary verified)
 
+### Repository Tests (`KITRepositoryTest`)
+
+The `KITRepository` layer, which sits between the ViewModels and the DAO, is tested directly to verify it correctly coordinates data operations. These tests run the repository against the in-memory `FakeAppDAO`.
+
+Coverage includes:
+- Adding a contact saves it through the repository with the correct fields
+- Retrieving multiple contacts added through the repository
+- Retrieving a specific contact by ID, and returning null for a missing contact
+- Adding a reminder saves it and links it to the correct contact
+- A single reminder can be linked to multiple contacts
+- A contact with no reminders returns an empty list
+- Adding an important date saves and retrieves it for a contact
+- Logging an interaction creates an event tied to the contact
+- The repository returns the weekly interaction count from the DAO
+
 ### Platform Smoke Tests
 
 `SharedLogicAndroidHostTest` and `SharedLogicIOSTest` are minimal tests that confirm the test runner and shared module build and execute correctly on each platform target. They do not test application logic.
@@ -99,6 +114,6 @@ Platform-specific and UI behavior not covered by automated tests is verified man
 
 ## Known Gaps and Future Work
 
-- ViewModel and repository layers are not yet covered by automated tests and are currently verified manually.
+- The ViewModel layer is not yet covered by automated tests and is currently verified manually. (The repository layer is covered by `KITRepositoryTest`.)
 - Integration testing against a real (non-fake) Room database and Firebase Firestore is planned but not yet implemented.
 - The full iOS application build is currently blocked by a Room/KSP code-generation incompatibility on the Kotlin/Native target (see Risk Analysis). The shared logic and tests still compile for iOS in CI; only the full app assembly is affected.
