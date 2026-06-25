@@ -38,7 +38,7 @@ jobs:
           if-no-files-found: warn
 
   ios-build-verification:
-    name: iOS Build Verification
+    name: iOS Unit Test Compile
     runs-on: macos-latest
 
     steps:
@@ -54,15 +54,5 @@ jobs:
       - name: Make Gradle Executable
         run: chmod +x gradlew
 
-      - name: Compile iOS Main Source
-        run: ./gradlew shared:compileKotlinIosSimulatorArm64 --rerun-tasks --no-daemon
-
-      - name: Upload iOS Build Reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: iOS-Build-Reports
-          path: |
-            **/build/reports/**
-            **/build/test-results/**
-          if-no-files-found: warn
+      - name: Compile iOS Unit Test Source
+        run: ./gradlew shared:compileTestKotlinIosSimulatorArm64 -x shared:kspKotlinIosSimulatorArm64 -x shared:kspTestKotlinIosSimulatorArm64 --rerun-tasks --no-daemon
