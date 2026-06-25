@@ -265,3 +265,5 @@ class AppDaoTest {
         dao.deleteImportantDate(date)
         assertEquals(0, dao.getImportantDatesForContact("c1").size)
     }
+}
+    
