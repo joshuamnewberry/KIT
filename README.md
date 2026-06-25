@@ -194,7 +194,7 @@ Run using Xcode.
 
 The team used Jira for sprint planning and task tracking throughout the project.
 A screenshot of the Jira board is included here:
-[Jira_Screenshots.png](https://github.com/joshuamnewberry/KIT/blob/main/Jira_Screenshots.png)
+[Jira_Screenshots.png]([https://github.com/joshuamnewberry/KIT/blob/main/Jira_Screenshots.png](https://github.com/joshuamnewberry/KIT/tree/main/Jira%20Screenshots))
 
 ---
 
