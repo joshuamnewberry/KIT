@@ -44,15 +44,15 @@ The application follows the MVVM (Model-View-ViewModel) architecture.
 * Home Screen
 * Contacts Screen
 * Individual Contact Screen
-* Calendar Screen
-* Reminder Screen
+* Add Contact Screen
+* Reminders Screen
 * Settings Screen
 
 #### ViewModels
 
 * HomeViewModel
 * ContactsViewModel
-* CalendarViewModel
+* RemindersViewModel
 
 #### Data Layer
 
