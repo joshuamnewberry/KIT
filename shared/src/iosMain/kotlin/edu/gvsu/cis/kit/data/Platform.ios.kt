@@ -21,7 +21,8 @@ actual fun initPlatformContext(context: Any) { }
 
 actual fun generateUUID(): String = NSUUID().UUIDString
 
-actual fun getCurrentTimeMillis(): Long = (NSDate().timeIntervalSince1970 * 1000).toLong()
+actual fun getCurrentTimeMillis(): Long =
+    (NSDate().timeIntervalSinceReferenceDate * 1000).toLong()
 
 actual fun triggerCallIntent(phoneNumber: String) {
     val url = NSURL(string = "tel:$phoneNumber")

@@ -43,6 +43,10 @@ class FakeAppDAO : AppDAO {
         reminders.removeAll { it.id == reminder.id }
     }
 
+    override suspend fun getAllReminders(): List<CheckInReminder> {
+        return reminders
+    }
+
     override suspend fun getRemindersForContact(contactId: String): List<CheckInReminder> {
         val reminderIds = reminderCrossRefs
             .filter { it.contactId == contactId }
@@ -121,5 +125,9 @@ class FakeAppDAO : AppDAO {
             .map { it.contactId }
 
         return contacts.filter { it.id in contactIds }
+    }
+
+    override suspend fun getWeeklyInteractionCount(startOfWeekMillis: Long): Int {
+        return 0
     }
 }

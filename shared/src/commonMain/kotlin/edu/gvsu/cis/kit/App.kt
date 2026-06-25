@@ -5,8 +5,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -17,12 +27,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import edu.gvsu.cis.kit.ui.*
+import edu.gvsu.cis.kit.ui.AddContactScreen
+import edu.gvsu.cis.kit.ui.ContactListScreen
+import edu.gvsu.cis.kit.ui.HomeScreen
+import edu.gvsu.cis.kit.ui.IndividualContactScreen
+import edu.gvsu.cis.kit.ui.ManageRemindersScreen
+import edu.gvsu.cis.kit.ui.SettingsScreen
 import edu.gvsu.cis.kit.viewModels.ContactsViewModel
 import edu.gvsu.cis.kit.viewModels.HomeViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
-sealed class TopLevelRoute(val name: String, val baseRoute: String, val icon: ImageVector) {
+sealed class TopLevelRoute(
+    val name: String,
+    val baseRoute: String,
+    val icon: ImageVector
+) {
     object Home : TopLevelRoute("Home", "home", Icons.Default.Home)
     object Contacts : TopLevelRoute("Contacts", "contactList", Icons.Default.Person)
     object Reminders : TopLevelRoute("Reminders", "manageReminders", Icons.Default.Notifications)
@@ -40,11 +59,24 @@ fun App() {
         TopLevelRoute.Reminders
     )
 
-    MaterialTheme(colorScheme = if (isDarkMode) darkColorScheme() else lightColorScheme()) {
+    fun navigateTopLevel(route: String) {
+        navController.navigate(route) {
+            popUpTo(navController.graph.findStartDestination().route!!) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
+    MaterialTheme(
+        colorScheme = if (isDarkMode) darkColorScheme() else lightColorScheme()
+    ) {
         Scaffold(
             bottomBar = {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
+
                 val showBottomBar = bottomNavigationItems.any { routeObj ->
                     currentDestination?.route?.startsWith(routeObj.baseRoute) == true
                 }
@@ -53,19 +85,18 @@ fun App() {
                     NavigationBar {
                         bottomNavigationItems.forEach { topLevelRoute ->
                             NavigationBarItem(
-                                icon = { Icon(topLevelRoute.icon, contentDescription = topLevelRoute.name) },
+                                icon = {
+                                    Icon(
+                                        imageVector = topLevelRoute.icon,
+                                        contentDescription = topLevelRoute.name
+                                    )
+                                },
                                 label = { Text(topLevelRoute.name) },
                                 selected = currentDestination?.hierarchy?.any {
                                     it.route?.startsWith(topLevelRoute.baseRoute) == true
                                 } == true,
                                 onClick = {
-                                    navController.navigate(topLevelRoute.baseRoute) {
-                                        popUpTo(navController.graph.findStartDestination().route!!) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
+                                    navigateTopLevel(topLevelRoute.baseRoute)
                                 }
                             )
                         }
@@ -81,14 +112,18 @@ fun App() {
                 composable(TopLevelRoute.Home.baseRoute) {
                     HomeScreen(
                         viewModel = homeViewModel,
-                        onNavigateToSettings = { navController.navigate("settings") }
+                        onNavigateToSettings = {
+                            navController.navigate("settings")
+                        }
                     )
                 }
 
                 composable("settings") {
                     SettingsScreen(
                         viewModel = homeViewModel,
-                        onBack = { navController.navigateUp() }
+                        onBack = {
+                            navController.navigateUp()
+                        }
                     )
                 }
 
@@ -100,32 +135,51 @@ fun App() {
                             type = NavType.BoolType
                         }
                     )
-                ) { backStackEntry ->
+                ) {
+                    val showAdd =
+                        navController.currentBackStackEntry
+                            ?.destination
+                            ?.route
+                            ?.contains("showAdd=true") == true
+
                     ContactListScreen(
                         viewModel = koinViewModel(),
-                        initialShowAdd = backStackEntry.arguments?.get("showAdd") as? Boolean ?: false,
+                        initialShowAdd = showAdd,
                         onNavigateToIndividualContact = { contactId ->
                             navController.navigate("individualContact/$contactId")
                         },
-                        onNavigateToAddContact = { navController.navigate("addContact") },
-                        onBack = { navController.navigateUp() }
+                        onNavigateToAddContact = {
+                            navController.navigate("addContact")
+                        },
+                        onBack = {
+                            navController.navigateUp()
+                        }
                     )
                 }
 
                 composable("addContact") {
                     AddContactScreen(
                         viewModel = koinViewModel(),
-                        onBack = { navController.navigateUp() }
+                        onBack = {
+                            navController.navigateUp()
+                        }
                     )
                 }
 
                 composable(
                     route = "individualContact/{contactId}",
                     arguments = listOf(
-                        navArgument("contactId") { type = NavType.StringType }
+                        navArgument("contactId") {
+                            type = NavType.StringType
+                        }
                     )
                 ) { backStackEntry ->
-                    val contactId = backStackEntry.arguments?.get("contactId") as? String ?: return@composable
+                    val contactId = backStackEntry
+                        .arguments
+                        .toString()
+                        .substringAfter("contactId=")
+                        .substringBefore("}")
+
                     val viewModel: ContactsViewModel = koinViewModel()
 
                     LaunchedEffect(contactId) {
@@ -136,10 +190,14 @@ fun App() {
                         viewModel = viewModel,
                         onNavigateToHome = {
                             navController.navigate(TopLevelRoute.Home.baseRoute) {
-                                popUpTo(TopLevelRoute.Home.baseRoute) { inclusive = true }
+                                popUpTo(TopLevelRoute.Home.baseRoute) {
+                                    inclusive = true
+                                }
                             }
                         },
-                        onBack = { navController.navigateUp() }
+                        onBack = {
+                            navController.navigateUp()
+                        }
                     )
                 }
 
@@ -151,11 +209,19 @@ fun App() {
                             type = NavType.BoolType
                         }
                     )
-                ) { backStackEntry ->
+                ) {
+                    val showAdd =
+                        navController.currentBackStackEntry
+                            ?.destination
+                            ?.route
+                            ?.contains("showAdd=true") == true
+
                     ManageRemindersScreen(
                         viewModel = koinViewModel(),
-                        initialShowAdd = backStackEntry.arguments?.get("showAdd") as? Boolean ?: false,
-                        onBack = { navController.navigateUp() }
+                        initialShowAdd = showAdd,
+                        onBack = {
+                            navController.navigateUp()
+                        }
                     )
                 }
             }
