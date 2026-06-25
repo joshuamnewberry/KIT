@@ -1,4 +1,4 @@
-name: Android Unit Testing
+name: Android and iOS Unit Testing
 
 on:
   push:
@@ -7,9 +7,9 @@ on:
     branches: [ "main" ]
 
 jobs:
-  android-unit-tests:
-    name: Android Unit Tests
-    runs-on: ubuntu-latest
+  kmp-unit-tests:
+    name: Android and iOS Unit Tests
+    runs-on: macos-latest
 
     steps:
       - name: Checkout Repository
@@ -24,14 +24,14 @@ jobs:
       - name: Make Gradle Executable
         run: chmod +x gradlew
 
-      - name: Run Android Unit Testing
-        run: ./gradlew androidApp:testDebugUnitTest --rerun-tasks --no-daemon
+      - name: Run Shared KMP Unit Tests
+        run: ./gradlew shared:allTests --rerun-tasks --no-daemon
 
-      - name: Upload Build Reports
+      - name: Upload Unit Test Reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Android-Unit-Test-Reports
+          name: Android-iOS-Unit-Test-Reports
           path: |
             **/build/reports/**
             **/build/test-results/**
