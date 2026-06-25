@@ -179,6 +179,16 @@ class AppDaoTest {
 
     // ---------- Events ----------
 
+
+    @Test
+    fun getWeeklyInteractionCount_countsOnlyEventsWithinWindow() = runTest {
+        val dao = FakeAppDAO()
+        dao.insertEvent(Event(id = "recent", timestampMillis = 5000L))
+        dao.insertEvent(Event(id = "alsoRecent", timestampMillis = 8000L))
+        dao.insertEvent(Event(id = "old", timestampMillis = 100L))
+        val count = dao.getWeeklyInteractionCount(startOfWeekMillis = 1000L)
+        assertEquals(2, count)
+}
     @Test
     fun insertEventWithCrossRef_returnsEventForContact() = runTest {
         val dao = FakeAppDAO()
