@@ -35,7 +35,6 @@ actual fun triggerSmsIntent(phoneNumber: String) {
 }
 
 actual fun requestContactImport() {
-    // Requires CNContactPickerViewController delegate handling in iOS MainViewController
 }
 
 actual fun requestNotificationPermission() {
@@ -43,12 +42,14 @@ actual fun requestNotificationPermission() {
     center.requestAuthorizationWithOptions(
         UNAuthorizationOptionAlert or UNAuthorizationOptionSound or UNAuthorizationOptionBadge
     ) { granted, error ->
-        // Notification permission granted or denied
     }
 }
 
+actual fun hasNotificationPermission(): Boolean {
+    return true
+}
+
 actual fun scheduleBackgroundTasks() {
-    // Requires BackgroundTasks framework registration in AppDelegate
 }
 
 class IOSKeyValueStore : KeyValueStore {

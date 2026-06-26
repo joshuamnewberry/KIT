@@ -13,6 +13,7 @@ data class Contact(
     val email: String? = null,
     val relationshipType: String? = null,
     val address: String? = null,
+    val birthday: String? = null,
     val notes: String? = null,
     val profilePictureUri: String? = null
 )

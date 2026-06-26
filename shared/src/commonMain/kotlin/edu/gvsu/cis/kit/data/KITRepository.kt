@@ -9,13 +9,14 @@ class KITRepository(private val dao: AppDAO) {
 
     suspend fun getContactById(contactId: String): Contact? = dao.getContactById(contactId)
 
-    suspend fun addContact(name: String, phoneNumber: String?, email: String?, relationshipType: String?, profilePictureUri: String? = null) {
+    suspend fun addContact(name: String, phoneNumber: String?, relationshipType: String?, address: String?, birthday: String?, profilePictureUri: String? = null) {
         val newContact = Contact(
             id = generateUUID(),
             name = name,
             phoneNumber = phoneNumber,
-            email = email,
             relationshipType = relationshipType,
+            address = address,
+            birthday = birthday,
             profilePictureUri = profilePictureUri
         )
         dao.insertContact(newContact)

@@ -4,14 +4,15 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import java.util.Calendar
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-import androidx.core.content.edit
-import java.util.Calendar
 
 object AndroidActivityHooks {
     var launchContactPicker: (() -> Unit)? = null
@@ -60,6 +61,10 @@ actual fun requestNotificationPermission() {
     }
 }
 
+actual fun hasNotificationPermission(): Boolean {
+    return NotificationManagerCompat.from(appContext).areNotificationsEnabled()
+}
+
 actual fun scheduleBackgroundTasks() {
     val store = getKeyValueStore()
     val hour = store.getInt("pref_reminder_hour", 9)
@@ -70,10 +75,9 @@ actual fun scheduleBackgroundTasks() {
         set(Calendar.HOUR_OF_DAY, hour)
         set(Calendar.MINUTE, minute)
         set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0) // Explicitly zero out for exactness
+        set(Calendar.MILLISECOND, 0)
     }
 
-    // If the time has already passed today, schedule for tomorrow
     if (target.before(now)) {
         target.add(Calendar.DAY_OF_YEAR, 1)
     }
@@ -84,7 +88,6 @@ actual fun scheduleBackgroundTasks() {
         .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
         .build()
 
-    // Enqueue or update the exact daily scheduled task using REPLACE
     WorkManager.getInstance(appContext).enqueueUniqueWork(
         "ExactDailyReminder",
         ExistingWorkPolicy.REPLACE,

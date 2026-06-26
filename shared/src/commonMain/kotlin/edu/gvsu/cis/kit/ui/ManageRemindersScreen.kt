@@ -29,6 +29,7 @@ fun ManageRemindersScreen(
     var showAddDialog by remember { mutableStateOf(initialShowAdd) }
     var reminderToDelete by remember { mutableStateOf<CheckInReminder?>(null) }
     var reminderToEdit by remember { mutableStateOf<CheckInReminder?>(null) }
+    var reminderContactIdToEdit by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         viewModel.loadReminders()
@@ -44,7 +45,7 @@ fun ManageRemindersScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { reminderToEdit = null; showAddDialog = true },
+                onClick = { reminderToEdit = null; reminderContactIdToEdit = null; showAddDialog = true },
                 containerColor = MaterialTheme.colorScheme.primaryContainer,
                 icon = { Icon(Icons.Default.Add, "Add Reminder") },
                 text = { Text("New Reminder") }
@@ -61,7 +62,13 @@ fun ManageRemindersScreen(
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(reminders) { (reminder, contacts) ->
-                        Card(modifier = Modifier.fillMaxWidth().clickable { reminderToEdit = reminder; showAddDialog = true }) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth().clickable {
+                                reminderToEdit = reminder
+                                reminderContactIdToEdit = contacts.firstOrNull()?.id
+                                showAddDialog = true
+                            }
+                        ) {
                             Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Notifications, null, tint = MaterialTheme.colorScheme.primary)
                                 Spacer(modifier = Modifier.width(16.dp))
@@ -96,8 +103,9 @@ fun ManageRemindersScreen(
 
         if (showAddDialog) {
             AddReminderDialog(
-                onDismiss = { showAddDialog = false; reminderToEdit = null },
+                onDismiss = { showAddDialog = false; reminderToEdit = null; reminderContactIdToEdit = null },
                 viewModel = viewModel,
+                preselectedContactId = reminderContactIdToEdit,
                 editingReminder = reminderToEdit
             )
         }

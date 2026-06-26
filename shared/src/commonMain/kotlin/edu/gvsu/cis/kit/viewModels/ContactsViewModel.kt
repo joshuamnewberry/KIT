@@ -84,13 +84,14 @@ class ContactsViewModel(private val repository: KITRepository) : ViewModel() {
 
     fun triggerMessage(phoneNumber: String) { if (phoneNumber.isNotBlank()) triggerSmsIntent(phoneNumber) }
 
-    fun addContact(name: String, phoneNumber: String, email: String, relationshipType: String, profilePictureUri: String? = null) {
+    fun addContact(name: String, phoneNumber: String, relationshipType: String, address: String, birthday: String, profilePictureUri: String? = null) {
         viewModelScope.launch {
             repository.addContact(
                 name,
                 phoneNumber.ifBlank { null },
-                email.ifBlank { null },
                 relationshipType.ifBlank { null },
+                address.ifBlank { null },
+                birthday.ifBlank { null },
                 profilePictureUri
             )
             loadContacts()

@@ -1,3 +1,4 @@
+// shared/src/commonMain/kotlin/edu/gvsu/cis/kit/Platform.kt
 package edu.gvsu.cis.kit
 
 interface Platform {
@@ -15,6 +16,7 @@ expect fun requestContactImport()
 expect fun triggerCallIntent(phoneNumber: String)
 expect fun triggerSmsIntent(phoneNumber: String)
 expect fun requestNotificationPermission()
+expect fun hasNotificationPermission(): Boolean
 expect fun scheduleBackgroundTasks()
 
 // Cross-Platform Settings Store

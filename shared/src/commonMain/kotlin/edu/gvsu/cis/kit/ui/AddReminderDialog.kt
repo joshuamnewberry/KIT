@@ -75,17 +75,15 @@ fun AddReminderDialog(
                     }
                 }
 
-                if (preselectedContactId == null && editingReminder == null) {
-                    ExposedDropdownMenuBox(expanded = expandedContact, onExpandedChange = { expandedContact = !expandedContact }) {
-                        val selectedName = contacts.find { it.id == selectedContactId }?.name ?: "Select Contact"
-                        OutlinedTextField(
-                            value = selectedName, onValueChange = {}, readOnly = true, label = { Text("Contact") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedContact) },
-                            modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
-                        )
-                        ExposedDropdownMenu(expanded = expandedContact, onDismissRequest = { expandedContact = false }) {
-                            contacts.forEach { contact -> DropdownMenuItem(text = { Text(contact.name) }, onClick = { selectedContactId = contact.id; expandedContact = false }) }
-                        }
+                ExposedDropdownMenuBox(expanded = expandedContact, onExpandedChange = { expandedContact = !expandedContact }) {
+                    val selectedName = contacts.find { it.id == selectedContactId }?.name ?: "Select Contact"
+                    OutlinedTextField(
+                        value = selectedName, onValueChange = {}, readOnly = true, label = { Text("Contact") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedContact) },
+                        modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    )
+                    ExposedDropdownMenu(expanded = expandedContact, onDismissRequest = { expandedContact = false }) {
+                        contacts.forEach { contact -> DropdownMenuItem(text = { Text(contact.name) }, onClick = { selectedContactId = contact.id; expandedContact = false }) }
                     }
                 }
             }
@@ -94,13 +92,16 @@ fun AddReminderDialog(
             Button(
                 onClick = {
                     if (editingReminder != null) {
-                        viewModel.updateReminder(editingReminder.copy(customMessage = reminderMessage, frequencyType = selectedFrequency.name, frequencyValue = frequencyValue))
+                        viewModel.updateReminder(
+                            editingReminder.copy(customMessage = reminderMessage, frequencyType = selectedFrequency.name, frequencyValue = frequencyValue),
+                            selectedContactId
+                        )
                     } else {
                         selectedContactId?.let { viewModel.addReminder(it, reminderMessage, selectedFrequency, frequencyValue) }
                     }
                     onDismiss()
                 },
-                enabled = reminderMessage.isNotBlank() && (editingReminder != null || selectedContactId != null)
+                enabled = reminderMessage.isNotBlank() && selectedContactId != null
             ) { Text("Save") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }

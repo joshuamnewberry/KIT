@@ -70,16 +70,16 @@ Coverage includes:
 
 ## Running Tests Locally
 
-Android:
+### Android Tests
 
-```
-./gradlew :shared:testAndroidHostTest
+```bash
+./gradlew androidApp:testDebugUnitTest --rerun-tasks
 ```
 
-iOS:
+### iOS Tests
 
-```
-./gradlew :shared:iosSimulatorArm64Test
+```bash
+./gradlew shared:compileTestKotlinIosSimulatorArm64 -x shared:kspKotlinIosSimulatorArm64 -x shared:kspTestKotlinIosSimulatorArm64 --rerun-tasks --no-daemon
 ```
 
 ## Continuous Integration

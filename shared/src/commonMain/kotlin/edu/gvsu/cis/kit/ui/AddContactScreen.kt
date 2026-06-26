@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import edu.gvsu.cis.kit.rememberCameraManager
 import edu.gvsu.cis.kit.rememberImagePickerManager
@@ -32,10 +33,10 @@ fun AddContactScreen(
     onBack: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
     var relationship by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf(TextFieldValue("")) }
     var address by remember { mutableStateOf("") }
+    var birthday by remember { mutableStateOf("") }
     var nameError by remember { mutableStateOf(false) }
 
     var profilePictureBytes by remember { mutableStateOf<ByteArray?>(null) }
@@ -69,7 +70,6 @@ fun AddContactScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            // Profile Picture UI
             Box(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
                 if (profilePictureBytes != null) {
                     val bitmap = remember(profilePictureBytes) { profilePictureBytes!!.toImageBitmap() }
@@ -106,10 +106,10 @@ fun AddContactScreen(
                 value = name, onValueChange = { name = it; nameError = false },
                 label = { Text("Name") }, isError = nameError, modifier = Modifier.fillMaxWidth()
             )
-            OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Phone Number") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(value = email, onValueChange = { email = it }, label = { Text("Email") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = relationship, onValueChange = { relationship = it }, label = { Text("Relationship") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = phone, onValueChange = { phone = formatPhoneNumber(it, phone) }, label = { Text("Phone") }, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Address") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(value = birthday, onValueChange = { birthday = it }, label = { Text("Birthday") }, modifier = Modifier.fillMaxWidth())
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -118,12 +118,8 @@ fun AddContactScreen(
                     if (name.isBlank()) {
                         nameError = true
                     } else {
-                        val base64Uri = profilePictureBytes?.let { bytes ->
-                            val rawBase64 = Base64.encode(bytes)
-                            // Strip any existing whitespace or newlines that might cause issues
-                            rawBase64.replace("\n", "").replace("\r", "")
-                        }
-                        viewModel.addContact(name, phone, email, relationship, base64Uri)
+                        val base64Uri = profilePictureBytes?.let { Base64.encode(it) }
+                        viewModel.addContact(name, phone.text, relationship, address, birthday, base64Uri)
                         onBack()
                     }
                 },

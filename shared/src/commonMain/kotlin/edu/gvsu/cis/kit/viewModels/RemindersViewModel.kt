@@ -38,7 +38,7 @@ class RemindersViewModel(private val repository: KITRepository) : ViewModel() {
         }
     }
 
-    fun updateReminder(reminder: CheckInReminder) {
+    fun updateReminder(reminder: CheckInReminder, newContactId: String? = null) {
         viewModelScope.launch {
             repository.updateReminder(reminder)
             loadReminders()

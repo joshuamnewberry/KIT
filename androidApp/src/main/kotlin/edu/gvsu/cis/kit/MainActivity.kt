@@ -1,10 +1,7 @@
 package edu.gvsu.cis.kit
 
-import android.Manifest
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
@@ -17,21 +14,18 @@ import edu.gvsu.cis.kit.viewModels.ContactsViewModel
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import androidx.core.net.toUri
-import java.io.InputStream
 
 class MainActivity : ComponentActivity(), KoinComponent {
 
     private val contactsViewModel: ContactsViewModel by inject()
 
-    // Launcher for notification permissions
     private val notificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        // Permission result handled automatically by Android OS
     }
 
-    // Launcher for contact read permissions
-    private val contactPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+    private val contactsPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         if (isGranted) {
-            launchOSContactPicker()
+            val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+            contactPickerLauncher.launch(intent)
         }
     }
 
@@ -62,7 +56,6 @@ class MainActivity : ComponentActivity(), KoinComponent {
                 if (photoUriStr != null) {
                     try {
                         val photoUri = photoUriStr.toUri()
-                        // This call now succeeds because we verify permission before launching the picker
                         val inputStream = contentResolver.openInputStream(photoUri)
                         val bytes = inputStream?.readBytes()
                         inputStream?.close()
@@ -75,7 +68,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
                     }
                 }
 
-                contactsViewModel.addContact(name, phoneNumber, "", "Imported", base64Image)
+                contactsViewModel.addContact(name, phoneNumber, "Imported", "", "", base64Image)
             }
         }
     }
@@ -89,7 +82,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
         initKoin(dao = dao, context = this.applicationContext)
 
-        AndroidActivityHooks.launchContactPicker = { checkContactPermissionAndLaunch() }
+        AndroidActivityHooks.launchContactPicker = { launchOSContactPicker() }
         AndroidActivityHooks.requestNotificationPermission = { requestOSNotificationPermission() }
 
         setContent {
@@ -97,35 +90,20 @@ class MainActivity : ComponentActivity(), KoinComponent {
         }
     }
 
-    private fun checkContactPermissionAndLaunch() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-            launchOSContactPicker()
-        } else {
-            contactPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
-        }
-    }
-
     private fun requestOSNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
 
     private fun launchOSContactPicker() {
-        val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
-        contactPickerLauncher.launch(intent)
-    }
-
-    fun getContactPhotoStream(context: Context, contactUri: Uri): InputStream? {
-        return try {
-            ContactsContract.Contacts.openContactPhotoInputStream(
-                context.contentResolver,
-                contactUri
-            )
-        } catch (_: SecurityException) {
-            null
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+            val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+            contactPickerLauncher.launch(intent)
+        } else {
+            contactsPermissionLauncher.launch(android.Manifest.permission.READ_CONTACTS)
         }
     }
 }

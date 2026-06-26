@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import edu.gvsu.cis.kit.viewModels.HomeViewModel
 import edu.gvsu.cis.kit.requestNotificationPermission
+import edu.gvsu.cis.kit.hasNotificationPermission
 import edu.gvsu.cis.kit.scheduleBackgroundTasks
 import edu.gvsu.cis.kit.requestContactImport
 
@@ -26,6 +27,12 @@ fun SettingsScreen(
 
     var showTimePicker by remember { mutableStateOf(false) }
     var showWipeConfirm by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        if (pushAlerts && !hasNotificationPermission()) {
+            viewModel.togglePushAlerts(false)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -61,7 +68,6 @@ fun SettingsScreen(
             HorizontalDivider()
 
             Button(onClick = { requestContactImport() }, modifier = Modifier.fillMaxWidth()) { Text("Import Device Contacts") }
-            Button(onClick = { scheduleBackgroundTasks() }, modifier = Modifier.fillMaxWidth()) { Text("Enable Background Sync") }
 
             Spacer(modifier = Modifier.weight(1f))
             Button(
