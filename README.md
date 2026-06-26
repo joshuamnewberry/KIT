@@ -8,6 +8,12 @@ The project was developed as part of CIS 350 Software Engineering at Grand Valle
 
 ---
 
+## Demo
+
+A video demonstration of the KIT app is available here: [KIT Demo Video](https://drive.google.com/drive/folders/17qx_LCZoC2Q0W8l0Ju1FErhLcLAJSvAI)
+
+---
+
 ## Team Members
 
 * Joshua Newberry
