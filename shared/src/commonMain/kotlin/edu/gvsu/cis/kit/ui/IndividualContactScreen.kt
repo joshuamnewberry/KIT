@@ -28,8 +28,9 @@ import edu.gvsu.cis.kit.viewModels.RemindersViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import kotlinx.coroutines.launch
 import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalEncodingApi::class)
 @Composable
 fun IndividualContactScreen(
     viewModel: ContactsViewModel,
@@ -47,19 +48,18 @@ fun IndividualContactScreen(
 
     var editName by remember(contact) { mutableStateOf(contact?.name ?: "") }
     var editRelationship by remember(contact) { mutableStateOf(contact?.relationshipType ?: "") }
-
-    // Ensure the phone number applies the mask immediately when loaded from the database
     var editPhone by remember(contact) { mutableStateOf(TextFieldValue(formatPhoneNumberString(contact?.phoneNumber))) }
-
     var editAddress by remember(contact) { mutableStateOf(contact?.address ?: "") }
     var editBirthday by remember(contact) { mutableStateOf("") }
     var notesState by remember(contact) { mutableStateOf(contact?.notes ?: "") }
 
-    // Load existing base64 string into ByteArray for editing
     var profilePictureBytes by remember(contact) {
         mutableStateOf(
             try {
-                contact?.profilePictureUri?.let { Base64.decode(it) }
+                contact?.profilePictureUri?.let { uri ->
+                    val sanitized = uri.replace("\n", "").replace("\r", "")
+                    Base64.decode(sanitized)
+                }
             } catch (_: Exception) { null }
         )
     }
@@ -73,9 +73,7 @@ fun IndividualContactScreen(
             TopAppBar(
                 title = { Text(if (isEditMode) "Edit Contact" else "Contact Details") },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        if (isEditMode) isEditMode = false else onBack()
-                    }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") }
+                    IconButton(onClick = { if (isEditMode) isEditMode = false else onBack() }) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back") }
                 },
                 actions = {
                     IconButton(onClick = onNavigateToHome) { Icon(Icons.Default.Home, "Go Home") }
@@ -83,11 +81,8 @@ fun IndividualContactScreen(
                         IconButton(onClick = {
                             if (isEditMode) {
                                 viewModel.updateContact(contact!!.copy(
-                                    name = editName,
-                                    relationshipType = editRelationship,
-                                    phoneNumber = editPhone.text,
-                                    address = editAddress,
-                                    profilePictureUri = profilePictureBytes?.let { Base64.encode(it) }
+                                    name = editName, relationshipType = editRelationship, phoneNumber = editPhone.text,
+                                    address = editAddress, profilePictureUri = profilePictureBytes?.let { Base64.encode(it) }
                                 ))
                             }
                             isEditMode = !isEditMode
@@ -104,13 +99,10 @@ fun IndividualContactScreen(
                 item {
                     if (isEditMode) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                            // Edit Mode Profile Picture UI
                             Box(modifier = Modifier.size(100.dp).padding(bottom = 8.dp), contentAlignment = Alignment.Center) {
-                                if (profilePictureBytes != null) {
-                                    val bitmap = remember(profilePictureBytes) { profilePictureBytes!!.toImageBitmap() }
-                                    if (bitmap != null) {
-                                        Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.fillMaxSize().clip(CircleShape).border(2.dp, MaterialTheme.colorScheme.primary, CircleShape), contentScale = ContentScale.Crop)
-                                    }
+                                val bitmap = remember(profilePictureBytes) { profilePictureBytes?.toImageBitmap() }
+                                if (bitmap != null) {
+                                    Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(100.dp).clip(CircleShape).border(2.dp, MaterialTheme.colorScheme.primary, CircleShape), contentScale = ContentScale.Crop)
                                 } else {
                                     Icon(Icons.Default.Person, contentDescription = "No Avatar", modifier = Modifier.size(100.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant).padding(24.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
@@ -119,81 +111,64 @@ fun IndividualContactScreen(
                                 OutlinedButton(onClick = { cameraManager.launchCamera() }) { Icon(Icons.Default.PhotoCamera, "Camera", modifier = Modifier.padding(end = 8.dp)); Text("Camera") }
                                 OutlinedButton(onClick = { imagePickerManager.launchImagePicker() }) { Icon(Icons.Default.Image, "Gallery", modifier = Modifier.padding(end = 8.dp)); Text("Gallery") }
                             }
-                            Spacer(modifier = Modifier.height(16.dp))
                             OutlinedTextField(value = editName, onValueChange = { editName = it }, label = { Text("Name") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(value = editRelationship, onValueChange = { editRelationship = it }, label = { Text("Relationship") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(value = editPhone, onValueChange = { editPhone = formatPhoneNumber(it, editPhone) }, label = { Text("Phone") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(value = editAddress, onValueChange = { editAddress = it }, label = { Text("Address") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(value = editBirthday, onValueChange = { editBirthday = it }, label = { Text("Birthday") }, modifier = Modifier.fillMaxWidth())
                         }
                     } else {
-                        // Display Mode Profile Picture UI
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            val displayBytes = remember(contact?.profilePictureUri) { contact?.profilePictureUri?.let {
-                                Base64.decode(
-                                    it
-                                )
-                            } }
-                            if (displayBytes != null) {
-                                val bitmap = remember(displayBytes) { displayBytes.toImageBitmap() }
-                                if (bitmap != null) {
-                                    Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(72.dp).clip(CircleShape).border(2.dp, MaterialTheme.colorScheme.primary, CircleShape), contentScale = ContentScale.Crop)
-                                }
+                            val displayBytes = remember(contact?.profilePictureUri) {
+                                try {
+                                    contact?.profilePictureUri?.let { uri ->
+                                        val sanitized = uri.replace("\n", "").replace("\r", "")
+                                        Base64.decode(sanitized)
+                                    }
+                                } catch (_: Exception) { null }
+                            }
+                            val bitmap = remember(displayBytes) { displayBytes?.toImageBitmap() }
+                            if (bitmap != null) {
+                                Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(72.dp).clip(CircleShape).border(2.dp, MaterialTheme.colorScheme.primary, CircleShape), contentScale = ContentScale.Crop)
                             } else {
                                 Surface(modifier = Modifier.size(72.dp), shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer) { Icon(Icons.Default.Person, null, modifier = Modifier.padding(16.dp)) }
                             }
                             Spacer(modifier = Modifier.width(16.dp))
-                            Column(verticalArrangement = Arrangement.Center) {
+                            Column {
                                 Text(contact?.name ?: "", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                                 if (!contact?.relationshipType.isNullOrBlank()) Text(contact?.relationshipType!!, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                             }
                         }
                         Spacer(modifier = Modifier.height(16.dp))
                         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            // Ensure the read-only view also enforces the mask for legacy unformatted DB entries
                             val displayPhone = formatPhoneNumberString(contact?.phoneNumber).takeIf { it.isNotBlank() } ?: "N/A"
                             Row { Icon(Icons.Default.Phone, null, tint = MaterialTheme.colorScheme.onSurfaceVariant); Spacer(modifier = Modifier.width(12.dp)); Text(displayPhone) }
                             Row { Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.onSurfaceVariant); Spacer(modifier = Modifier.width(12.dp)); Text(contact?.address.takeIf { !it.isNullOrBlank() } ?: "N/A") }
-                            Row { Icon(Icons.Default.DateRange, null, tint = MaterialTheme.colorScheme.onSurfaceVariant); Spacer(modifier = Modifier.width(12.dp)); Text(editBirthday.takeIf { it.isNotBlank() } ?: "N/A") }
                         }
                     }
                 }
-
                 if (!isEditMode) {
                     item {
-                        Spacer(modifier = Modifier.height(24.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                            Button(onClick = {
-                                viewModel.logInteraction(contact!!.id)
-                                coroutineScope.launch { snackbarHostState.showSnackbar("Interaction logged!") }
-                            }) { Text("Log Interaction") }
+                            Button(onClick = { viewModel.logInteraction(contact!!.id); coroutineScope.launch { snackbarHostState.showSnackbar("Logged!") } }) { Text("Log Interaction") }
                             FilledIconButton(onClick = { viewModel.triggerCall(contact!!.phoneNumber ?: "") }) { Icon(Icons.Default.Call, null) }
                             FilledIconButton(onClick = { viewModel.triggerMessage(contact!!.phoneNumber ?: "") }) { Icon(Icons.Default.Sms, null) }
                         }
                     }
-
                     item {
-                        Text("Notes", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         OutlinedTextField(
                             value = notesState, onValueChange = { notesState = it },
                             modifier = Modifier.fillMaxWidth().height(110.dp).onFocusChanged { if (!it.isFocused) viewModel.updateNotes(contact!!.id, notesState) },
-                            placeholder = { Text("Jot down notes...") }, maxLines = 4
+                            placeholder = { Text("Notes...") }
                         )
                     }
-
                     item {
-                        Text("Active Reminders", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        if (reminders.isEmpty()) Text("No reminders set.", style = MaterialTheme.typography.bodyMedium)
-                        else reminders.forEach { Text("• ${it.frequencyType} Check-in", modifier = Modifier.padding(vertical = 4.dp)) }
-                        Spacer(modifier = Modifier.height(16.dp))
-                        OutlinedButton(onClick = { showAddReminderDialog = true }, modifier = Modifier.fillMaxWidth()) { Text("+ Add Reminder") }
+                        Text("Reminders", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        if (reminders.isEmpty()) Text("No reminders.") else reminders.forEach { Text("• ${it.frequencyType}") }
+                        OutlinedButton(onClick = { showAddReminderDialog = true }, modifier = Modifier.fillMaxWidth()) { Text("+ Add") }
                     }
                 }
             }
-
-            if (showAddReminderDialog) {
-                AddReminderDialog(onDismiss = { showAddReminderDialog = false }, viewModel = remindersViewModel, preselectedContactId = contact?.id)
-            }
+            if (showAddReminderDialog) AddReminderDialog(onDismiss = { showAddReminderDialog = false }, viewModel = remindersViewModel, preselectedContactId = contact?.id)
         }
     }
 }

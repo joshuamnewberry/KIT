@@ -23,7 +23,6 @@ import edu.gvsu.cis.kit.rememberCameraManager
 import edu.gvsu.cis.kit.rememberImagePickerManager
 import edu.gvsu.cis.kit.toImageBitmap
 import edu.gvsu.cis.kit.viewModels.ContactsViewModel
-import io.ktor.util.encodeBase64
 import kotlin.io.encoding.Base64
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -119,7 +118,11 @@ fun AddContactScreen(
                     if (name.isBlank()) {
                         nameError = true
                     } else {
-                        val base64Uri = profilePictureBytes?.let { Base64.encode(it) }
+                        val base64Uri = profilePictureBytes?.let { bytes ->
+                            val rawBase64 = Base64.encode(bytes)
+                            // Strip any existing whitespace or newlines that might cause issues
+                            rawBase64.replace("\n", "").replace("\r", "")
+                        }
                         viewModel.addContact(name, phone, email, relationship, base64Uri)
                         onBack()
                     }

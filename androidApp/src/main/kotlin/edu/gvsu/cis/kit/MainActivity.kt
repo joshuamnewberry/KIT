@@ -1,7 +1,10 @@
 package edu.gvsu.cis.kit
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
@@ -14,20 +17,28 @@ import edu.gvsu.cis.kit.viewModels.ContactsViewModel
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import androidx.core.net.toUri
+import java.io.InputStream
 
 class MainActivity : ComponentActivity(), KoinComponent {
 
     private val contactsViewModel: ContactsViewModel by inject()
 
+    // Launcher for notification permissions
     private val notificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
         // Permission result handled automatically by Android OS
+    }
+
+    // Launcher for contact read permissions
+    private val contactPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            launchOSContactPicker()
+        }
     }
 
     private val contactPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             val contactUri = result.data?.data ?: return@registerForActivityResult
 
-            // Add PHOTO_URI to the projection
             val projection = arrayOf(
                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
                 ContactsContract.CommonDataKinds.Phone.NUMBER,
@@ -47,17 +58,16 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
                 cursor.close()
 
-                // Fetch the image bytes and encode to base64
                 var base64Image: String? = null
                 if (photoUriStr != null) {
                     try {
                         val photoUri = photoUriStr.toUri()
+                        // This call now succeeds because we verify permission before launching the picker
                         val inputStream = contentResolver.openInputStream(photoUri)
                         val bytes = inputStream?.readBytes()
                         inputStream?.close()
 
                         if (bytes != null) {
-                            // Using standard Android base64 encoding (matches ktor's no-wrap format)
                             base64Image = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP).replace("\n", "").replace("\r", "")
                         }
                     } catch (e: Exception) {
@@ -65,7 +75,6 @@ class MainActivity : ComponentActivity(), KoinComponent {
                     }
                 }
 
-                // Save the contact with the profile picture
                 contactsViewModel.addContact(name, phoneNumber, "", "Imported", base64Image)
             }
         }
@@ -74,16 +83,13 @@ class MainActivity : ComponentActivity(), KoinComponent {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. Build the database and extract the DAO
         val dbBuilder = getDatabaseBuilder(this.applicationContext)
         val db = getDatabaseInstance(dbBuilder)
         val dao = db.getDao()
 
-        // 2. Start Koin dependency injection BEFORE loading the UI
         initKoin(dao = dao, context = this.applicationContext)
 
-        // 3. Register the hooks to avoid circular dependencies between shared and androidApp modules
-        AndroidActivityHooks.launchContactPicker = { launchOSContactPicker() }
+        AndroidActivityHooks.launchContactPicker = { checkContactPermissionAndLaunch() }
         AndroidActivityHooks.requestNotificationPermission = { requestOSNotificationPermission() }
 
         setContent {
@@ -91,10 +97,18 @@ class MainActivity : ComponentActivity(), KoinComponent {
         }
     }
 
+    private fun checkContactPermissionAndLaunch() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+            launchOSContactPicker()
+        } else {
+            contactPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+        }
+    }
+
     private fun requestOSNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
     }
@@ -102,5 +116,16 @@ class MainActivity : ComponentActivity(), KoinComponent {
     private fun launchOSContactPicker() {
         val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
         contactPickerLauncher.launch(intent)
+    }
+
+    fun getContactPhotoStream(context: Context, contactUri: Uri): InputStream? {
+        return try {
+            ContactsContract.Contacts.openContactPhotoInputStream(
+                context.contentResolver,
+                contactUri
+            )
+        } catch (_: SecurityException) {
+            null
+        }
     }
 }

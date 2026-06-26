@@ -1,5 +1,6 @@
 package edu.gvsu.cis.kit.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -7,28 +8,28 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import edu.gvsu.cis.kit.data.Contact
+import edu.gvsu.cis.kit.toImageBitmap
 import edu.gvsu.cis.kit.viewModels.ContactsViewModel
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalEncodingApi::class)
 @Composable
 fun ContactListScreen(
     viewModel: ContactsViewModel,
     initialShowAdd: Boolean = false,
     onNavigateToIndividualContact: (String) -> Unit,
-    onNavigateToAddContact: () -> Unit, // NEW
+    onNavigateToAddContact: () -> Unit,
     onBack: () -> Unit
 ) {
     val contacts by viewModel.filteredContacts.collectAsState()
@@ -60,9 +61,22 @@ fun ContactListScreen(
                 items(contacts) { contact ->
                     Card(modifier = Modifier.fillMaxWidth().clickable { onNavigateToIndividualContact(contact.id) }) {
                         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Surface(modifier = Modifier.size(48.dp), shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer) {
-                                // TODO: Replace placeholder with AsyncImage loaded from profilePictureUri when available
-                                Icon(Icons.Default.Person, null, modifier = Modifier.padding(12.dp))
+
+                            val bitmap = remember(contact.profilePictureUri) {
+                                try {
+                                    contact.profilePictureUri?.let { uri ->
+                                        val sanitized = uri.replace("\n", "").replace("\r", "")
+                                        Base64.decode(sanitized).toImageBitmap()
+                                    }
+                                } catch (_: Exception) { null }
+                            }
+
+                            if (bitmap != null) {
+                                Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(48.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+                            } else {
+                                Surface(modifier = Modifier.size(48.dp), shape = CircleShape, color = MaterialTheme.colorScheme.secondaryContainer) {
+                                    Icon(Icons.Default.Person, null, modifier = Modifier.padding(12.dp))
+                                }
                             }
 
                             Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp), verticalArrangement = Arrangement.Center) {
