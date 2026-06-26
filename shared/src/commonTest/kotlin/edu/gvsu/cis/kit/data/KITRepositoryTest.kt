@@ -16,8 +16,9 @@ class KITRepositoryTest {
         repository.addContact(
             name = "Jamie",
             phoneNumber = "6165551111",
-            email = "jamie@email.com",
-            relationshipType = "Friend"
+            relationshipType = "Friend",
+            address = "123 Main St",
+            birthday = "2000-01-01"
         )
 
         val contacts = repository.getAllContacts()
@@ -25,7 +26,6 @@ class KITRepositoryTest {
         assertEquals(1, contacts.size)
         assertEquals("Jamie", contacts[0].name)
         assertEquals("6165551111", contacts[0].phoneNumber)
-        assertEquals("jamie@email.com", contacts[0].email)
         assertEquals("Friend", contacts[0].relationshipType)
     }
 
@@ -34,8 +34,8 @@ class KITRepositoryTest {
         val dao = FakeAppDAO()
         val repository = KITRepository(dao)
 
-        repository.addContact("Alex", "6165550001", "alex@email.com", "Friend")
-        repository.addContact("Zack", "6165550002", "zack@email.com", "Classmate")
+        repository.addContact("Alex", "6165550001", "Friend", "1 Oak Ave", "1999-05-05")
+        repository.addContact("Zack", "6165550002", "Classmate", "2 Elm St", "1998-08-08")
 
         val contacts = repository.getAllContacts()
 
