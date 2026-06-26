@@ -133,13 +133,13 @@ Run using Xcode.
 ### Android Tests
 
 ```bash
-./gradlew :shared:testAndroidHostTest
+./gradlew androidApp:testDebugUnitTest --rerun-tasks
 ```
 
 ### iOS Tests
 
 ```bash
-./gradlew :shared:iosSimulatorArm64Test
+./gradlew shared:compileTestKotlinIosSimulatorArm64 -x shared:kspKotlinIosSimulatorArm64 -x shared:kspTestKotlinIosSimulatorArm64 --rerun-tasks --no-daemon
 ```
 
 ### Manual Testing
