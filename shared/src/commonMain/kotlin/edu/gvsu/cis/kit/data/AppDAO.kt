@@ -114,7 +114,7 @@ interface AppDAO {
         Contact::class, CheckInReminder::class, Event::class,
         ReminderContactCrossRef::class, EventContactCrossRef::class, ImportantDate::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 @ConstructedBy(MyDatabaseBuilder::class)
