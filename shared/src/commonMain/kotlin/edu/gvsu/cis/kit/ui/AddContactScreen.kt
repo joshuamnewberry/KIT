@@ -1,15 +1,30 @@
 package edu.gvsu.cis.kit.ui
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import edu.gvsu.cis.kit.rememberCameraManager
+import edu.gvsu.cis.kit.rememberImagePickerManager
+import edu.gvsu.cis.kit.toImageBitmap
 import edu.gvsu.cis.kit.viewModels.ContactsViewModel
+import io.ktor.util.encodeBase64
+import kotlin.io.encoding.Base64
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -23,6 +38,20 @@ fun AddContactScreen(
     var relationship by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var nameError by remember { mutableStateOf(false) }
+
+    var profilePictureBytes by remember { mutableStateOf<ByteArray?>(null) }
+
+    val cameraManager = rememberCameraManager { capturedByteArray ->
+        if (capturedByteArray != null) {
+            profilePictureBytes = capturedByteArray
+        }
+    }
+
+    val imagePickerManager = rememberImagePickerManager { pickedByteArray ->
+        if (pickedByteArray != null) {
+            profilePictureBytes = pickedByteArray
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -41,7 +70,38 @@ fun AddContactScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            // TODO: Add ImagePicker UI cross-platform library target here
+            // Profile Picture UI
+            Box(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
+                if (profilePictureBytes != null) {
+                    val bitmap = remember(profilePictureBytes) { profilePictureBytes!!.toImageBitmap() }
+                    if (bitmap != null) {
+                        Image(
+                            bitmap = bitmap,
+                            contentDescription = "Contact Avatar",
+                            modifier = Modifier.size(100.dp).clip(CircleShape).border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "No Avatar",
+                        modifier = Modifier.size(100.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant).padding(24.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally)) {
+                OutlinedButton(onClick = { cameraManager.launchCamera() }) {
+                    Icon(Icons.Default.PhotoCamera, "Take Photo", modifier = Modifier.padding(end = 8.dp))
+                    Text("Camera")
+                }
+                OutlinedButton(onClick = { imagePickerManager.launchImagePicker() }) {
+                    Icon(Icons.Default.Image, "Pick Gallery", modifier = Modifier.padding(end = 8.dp))
+                    Text("Gallery")
+                }
+            }
 
             OutlinedTextField(
                 value = name, onValueChange = { name = it; nameError = false },
@@ -59,7 +119,8 @@ fun AddContactScreen(
                     if (name.isBlank()) {
                         nameError = true
                     } else {
-                        viewModel.addContact(name, phone, email, relationship)
+                        val base64Uri = profilePictureBytes?.let { Base64.encode(it) }
+                        viewModel.addContact(name, phone, email, relationship, base64Uri)
                         onBack()
                     }
                 },

@@ -2,7 +2,6 @@ package edu.gvsu.cis.kit.data
 
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import edu.gvsu.cis.kit.data.AppDB
 import kotlinx.cinterop.ExperimentalForeignApi
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager

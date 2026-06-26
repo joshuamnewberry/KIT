@@ -21,6 +21,8 @@ expect fun scheduleBackgroundTasks()
 interface KeyValueStore {
     fun getBoolean(key: String, defaultValue: Boolean): Boolean
     fun setBoolean(key: String, value: Boolean)
+    fun getInt(key: String, defaultValue: Int): Int
+    fun setInt(key: String, value: Int)
 }
 
 expect fun getKeyValueStore(): KeyValueStore

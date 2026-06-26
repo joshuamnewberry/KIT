@@ -13,8 +13,6 @@ object ReminderDateCalculator {
             ReminderFrequencyType.DAILY -> currentDateMillis + oneDayMillis
             ReminderFrequencyType.WEEKLY -> currentDateMillis + (7 * oneDayMillis)
             ReminderFrequencyType.MONTHLY -> currentDateMillis + (30 * oneDayMillis)
-            ReminderFrequencyType.YEARLY -> currentDateMillis + (365 * oneDayMillis)
-            ReminderFrequencyType.CUSTOM -> currentDateMillis + ((frequencyValue ?: 1) * oneDayMillis)
         }
     }
 }

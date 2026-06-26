@@ -9,13 +9,14 @@ class KITRepository(private val dao: AppDAO) {
 
     suspend fun getContactById(contactId: String): Contact? = dao.getContactById(contactId)
 
-    suspend fun addContact(name: String, phoneNumber: String?, email: String?, relationshipType: String?) {
+    suspend fun addContact(name: String, phoneNumber: String?, email: String?, relationshipType: String?, profilePictureUri: String? = null) {
         val newContact = Contact(
             id = generateUUID(),
             name = name,
             phoneNumber = phoneNumber,
             email = email,
-            relationshipType = relationshipType
+            relationshipType = relationshipType,
+            profilePictureUri = profilePictureUri
         )
         dao.insertContact(newContact)
     }
@@ -63,12 +64,11 @@ class KITRepository(private val dao: AppDAO) {
 
     suspend fun getImportantDatesForContact(contactId: String): List<ImportantDate> = dao.getImportantDatesForContact(contactId)
 
-    suspend fun addImportantDate(contactId: String, title: String, type: ImportantDateType, dateMillis: Long) {
+    suspend fun addImportantDate(contactId: String, title: String, dateMillis: Long) {
         val newDate = ImportantDate(
             id = generateUUID(),
             contactId = contactId,
             title = title,
-            type = type.name,
             dateMillis = dateMillis
         )
         dao.insertImportantDate(newDate)

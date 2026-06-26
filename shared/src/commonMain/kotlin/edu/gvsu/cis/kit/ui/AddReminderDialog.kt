@@ -20,7 +20,7 @@ fun AddReminderDialog(
 ) {
     val contacts by viewModel.contacts.collectAsState()
 
-    var reminderTitle by remember { mutableStateOf(editingReminder?.customMessage ?: "") }
+    var reminderMessage by remember { mutableStateOf(editingReminder?.customMessage ?: "") }
     var selectedFrequency by remember {
         mutableStateOf(editingReminder?.frequencyType?.let { ReminderFrequencyType.valueOf(it) } ?: ReminderFrequencyType.MONTHLY)
     }
@@ -36,12 +36,13 @@ fun AddReminderDialog(
         title = { Text(if (editingReminder != null) "Edit Reminder" else "New Reminder") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(value = reminderTitle, onValueChange = { reminderTitle = it }, label = { Text("Title") }, singleLine = true)
+                OutlinedTextField(value = reminderMessage, onValueChange = { reminderMessage = it }, label = { Text("Message") }, singleLine = true)
 
                 ExposedDropdownMenuBox(expanded = expandedFrequency, onExpandedChange = { expandedFrequency = !expandedFrequency }) {
                     OutlinedTextField(
                         value = selectedFrequency.name, onValueChange = {}, readOnly = true, label = { Text("Frequency") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedFrequency) }, modifier = Modifier.menuAnchor()
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedFrequency) },
+                        modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                     )
                     ExposedDropdownMenu(expanded = expandedFrequency, onDismissRequest = { expandedFrequency = false }) {
                         ReminderFrequencyType.entries.forEach { freq ->
@@ -54,7 +55,8 @@ fun AddReminderDialog(
                     ExposedDropdownMenuBox(expanded = expandedValuePicker, onExpandedChange = { expandedValuePicker = !expandedValuePicker }) {
                         OutlinedTextField(
                             value = frequencyValue?.toString() ?: "Day", onValueChange = {}, readOnly = true, label = { Text("Day of Week (1-7)") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedValuePicker) }, modifier = Modifier.menuAnchor()
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedValuePicker) },
+                            modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                         )
                         ExposedDropdownMenu(expanded = expandedValuePicker, onDismissRequest = { expandedValuePicker = false }) {
                             (1..7).forEach { day -> DropdownMenuItem(text = { Text(day.toString()) }, onClick = { frequencyValue = day; expandedValuePicker = false }) }
@@ -64,7 +66,8 @@ fun AddReminderDialog(
                     ExposedDropdownMenuBox(expanded = expandedValuePicker, onExpandedChange = { expandedValuePicker = !expandedValuePicker }) {
                         OutlinedTextField(
                             value = frequencyValue?.toString() ?: "Date", onValueChange = {}, readOnly = true, label = { Text("Date of Month") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedValuePicker) }, modifier = Modifier.menuAnchor()
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedValuePicker) },
+                            modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                         )
                         ExposedDropdownMenu(expanded = expandedValuePicker, onDismissRequest = { expandedValuePicker = false }) {
                             (1..31).forEach { date -> DropdownMenuItem(text = { Text(date.toString()) }, onClick = { frequencyValue = date; expandedValuePicker = false }) }
@@ -77,7 +80,8 @@ fun AddReminderDialog(
                         val selectedName = contacts.find { it.id == selectedContactId }?.name ?: "Select Contact"
                         OutlinedTextField(
                             value = selectedName, onValueChange = {}, readOnly = true, label = { Text("Contact") },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedContact) }, modifier = Modifier.menuAnchor()
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedContact) },
+                            modifier = Modifier.menuAnchor(type = ExposedDropdownMenuAnchorType.PrimaryNotEditable)
                         )
                         ExposedDropdownMenu(expanded = expandedContact, onDismissRequest = { expandedContact = false }) {
                             contacts.forEach { contact -> DropdownMenuItem(text = { Text(contact.name) }, onClick = { selectedContactId = contact.id; expandedContact = false }) }
@@ -90,13 +94,13 @@ fun AddReminderDialog(
             Button(
                 onClick = {
                     if (editingReminder != null) {
-                        viewModel.updateReminder(editingReminder.copy(customMessage = reminderTitle, frequencyType = selectedFrequency.name, frequencyValue = frequencyValue))
+                        viewModel.updateReminder(editingReminder.copy(customMessage = reminderMessage, frequencyType = selectedFrequency.name, frequencyValue = frequencyValue))
                     } else {
-                        selectedContactId?.let { viewModel.addReminder(it, reminderTitle, selectedFrequency, frequencyValue) }
+                        selectedContactId?.let { viewModel.addReminder(it, reminderMessage, selectedFrequency, frequencyValue) }
                     }
                     onDismiss()
                 },
-                enabled = reminderTitle.isNotBlank() && (editingReminder != null || selectedContactId != null)
+                enabled = reminderMessage.isNotBlank() && (editingReminder != null || selectedContactId != null)
             ) { Text("Save") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }

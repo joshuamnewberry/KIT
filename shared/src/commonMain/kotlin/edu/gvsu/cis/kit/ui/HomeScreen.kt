@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -55,9 +56,18 @@ fun HomeScreen(
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(dueReminders) { (reminder, contact) ->
                         Card(modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text(reminder.customMessage ?: "Check-in", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                Text("With: ${contact.name}", style = MaterialTheme.typography.bodyMedium)
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(reminder.customMessage ?: "Check-in", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                    Text("With: ${contact.name}", style = MaterialTheme.typography.bodyMedium)
+                                }
+                                IconButton(onClick = { viewModel.markReminderComplete(reminder, contact) }) {
+                                    Icon(Icons.Default.Check, contentDescription = "Complete Check-in", tint = MaterialTheme.colorScheme.primary)
+                                }
                             }
                         }
                     }

@@ -14,7 +14,7 @@ data class Contact(
     val relationshipType: String? = null,
     val address: String? = null,
     val notes: String? = null,
-    val profilePictureUri: String? = null // New Image Field added
+    val profilePictureUri: String? = null
 )
 
 @Serializable
@@ -28,7 +28,7 @@ data class CheckInReminder(
     val isCompleted: Boolean = false
 )
 
-enum class ReminderFrequencyType { DAILY, WEEKLY, MONTHLY, YEARLY, CUSTOM }
+enum class ReminderFrequencyType { DAILY, WEEKLY, MONTHLY}
 
 @Serializable
 @Entity(tableName = "events")
@@ -44,11 +44,8 @@ data class ImportantDate(
     @PrimaryKey val id: String,
     val contactId: String,
     val title: String,
-    val type: String,
     val dateMillis: Long
 )
-
-enum class ImportantDateType { BIRTHDAY, ANNIVERSARY, CUSTOM }
 
 @Entity(tableName = "reminder_contact_cross_ref", primaryKeys = ["reminderId", "contactId"])
 data class ReminderContactCrossRef(val reminderId: String, val contactId: String)

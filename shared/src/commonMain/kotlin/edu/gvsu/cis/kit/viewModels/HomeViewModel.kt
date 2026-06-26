@@ -6,6 +6,8 @@ import edu.gvsu.cis.kit.data.AppDAO
 import edu.gvsu.cis.kit.data.CheckInReminder
 import edu.gvsu.cis.kit.data.Contact
 import edu.gvsu.cis.kit.data.KITRepository
+import edu.gvsu.cis.kit.data.ReminderDateCalculator
+import edu.gvsu.cis.kit.data.ReminderFrequencyType
 import edu.gvsu.cis.kit.getKeyValueStore
 import edu.gvsu.cis.kit.getCurrentTimeMillis
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,11 +28,14 @@ class HomeViewModel(private val dao: AppDAO) : ViewModel() {
     private val _isDarkMode = MutableStateFlow(store.getBoolean("pref_dark_mode", true))
     val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
 
-    private val _dailyDigestEnabled = MutableStateFlow(store.getBoolean("pref_daily_digest", true))
-    val dailyDigestEnabled: StateFlow<Boolean> = _dailyDigestEnabled.asStateFlow()
-
     private val _pushAlertsEnabled = MutableStateFlow(store.getBoolean("pref_push_alerts", true))
     val pushAlertsEnabled: StateFlow<Boolean> = _pushAlertsEnabled.asStateFlow()
+
+    private val _reminderHour = MutableStateFlow(store.getInt("pref_reminder_hour", 9))
+    val reminderHour: StateFlow<Int> = _reminderHour.asStateFlow()
+
+    private val _reminderMinute = MutableStateFlow(store.getInt("pref_reminder_minute", 0))
+    val reminderMinute: StateFlow<Int> = _reminderMinute.asStateFlow()
 
     init { loadHomeData() }
 
@@ -50,14 +55,26 @@ class HomeViewModel(private val dao: AppDAO) : ViewModel() {
         _isDarkMode.value = enabled
     }
 
-    fun toggleDailyDigest(enabled: Boolean) {
-        store.setBoolean("pref_daily_digest", enabled)
-        _dailyDigestEnabled.value = enabled
-    }
-
     fun togglePushAlerts(enabled: Boolean) {
         store.setBoolean("pref_push_alerts", enabled)
         _pushAlertsEnabled.value = enabled
+    }
+
+    fun updateReminderTime(hour: Int, minute: Int) {
+        store.setInt("pref_reminder_hour", hour)
+        store.setInt("pref_reminder_minute", minute)
+        _reminderHour.value = hour
+        _reminderMinute.value = minute
+    }
+
+    fun markReminderComplete(reminder: CheckInReminder, contact: Contact) {
+        viewModelScope.launch {
+            repository.logInteraction(contact.id)
+            val frequencyType = ReminderFrequencyType.valueOf(reminder.frequencyType)
+            val nextDate = ReminderDateCalculator.calculateNextDate(frequencyType)
+            dao.updateReminder(reminder.copy(nextReminderDate = nextDate))
+            loadHomeData()
+        }
     }
 
     fun clearAllData() {

@@ -13,8 +13,11 @@ plugins {
 kotlin {
     applyDefaultHierarchyTemplate()
 
-    androidLibrary {
-        // FIXED: Namespace updated to avoid clashes
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
+    android {
         namespace = "edu.gvsu.cis.kit.shared"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -62,7 +65,7 @@ kotlin {
 
         androidMain.dependencies {
             // FIXED: Using string literal to guarantee WorkManager loads correctly
-            implementation("androidx.work:work-runtime-ktx:2.9.0")
+            implementation("androidx.work:work-runtime-ktx:2.11.2")
             implementation(project.dependencies.platform("com.google.firebase:firebase-bom:33.1.0"))
 
             implementation(libs.ktor.client.android)
@@ -75,8 +78,8 @@ kotlin {
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
-            implementation("app.cash.turbine:turbine:1.1.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
+            implementation("app.cash.turbine:turbine:1.2.1")
         }
     }
 }

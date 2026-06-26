@@ -1,6 +1,5 @@
 package edu.gvsu.cis.kit
 
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -14,6 +13,7 @@ import edu.gvsu.cis.kit.data.getDatabaseInstance
 import edu.gvsu.cis.kit.viewModels.ContactsViewModel
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import androidx.core.net.toUri
 
 class MainActivity : ComponentActivity(), KoinComponent {
 
@@ -24,12 +24,14 @@ class MainActivity : ComponentActivity(), KoinComponent {
     }
 
     private val contactPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
+        if (result.resultCode == RESULT_OK) {
             val contactUri = result.data?.data ?: return@registerForActivityResult
-            // We request only the columns we need from the implicitly permitted URI
+
+            // Add PHOTO_URI to the projection
             val projection = arrayOf(
                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
-                ContactsContract.CommonDataKinds.Phone.NUMBER
+                ContactsContract.CommonDataKinds.Phone.NUMBER,
+                ContactsContract.CommonDataKinds.Phone.PHOTO_URI
             )
 
             val cursor = contentResolver.query(contactUri, projection, null, null, null)
@@ -37,13 +39,34 @@ class MainActivity : ComponentActivity(), KoinComponent {
             if (cursor != null && cursor.moveToFirst()) {
                 val nameIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
                 val phoneIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                val photoIndex = cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI)
 
                 val name = cursor.getString(nameIndex) ?: "Unknown"
                 val phoneNumber = cursor.getString(phoneIndex) ?: ""
+                val photoUriStr = if (photoIndex != -1) cursor.getString(photoIndex) else null
 
                 cursor.close()
 
-                contactsViewModel.addContact(name, phoneNumber, "", "Imported")
+                // Fetch the image bytes and encode to base64
+                var base64Image: String? = null
+                if (photoUriStr != null) {
+                    try {
+                        val photoUri = photoUriStr.toUri()
+                        val inputStream = contentResolver.openInputStream(photoUri)
+                        val bytes = inputStream?.readBytes()
+                        inputStream?.close()
+
+                        if (bytes != null) {
+                            // Using standard Android base64 encoding (matches ktor's no-wrap format)
+                            base64Image = android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP).replace("\n", "").replace("\r", "")
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                // Save the contact with the profile picture
+                contactsViewModel.addContact(name, phoneNumber, "", "Imported", base64Image)
             }
         }
     }

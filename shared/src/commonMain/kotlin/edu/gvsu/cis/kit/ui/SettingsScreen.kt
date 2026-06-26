@@ -20,8 +20,11 @@ fun SettingsScreen(
     onBack: () -> Unit
 ) {
     val isDarkMode by viewModel.isDarkMode.collectAsState()
-    val dailyDigest by viewModel.dailyDigestEnabled.collectAsState()
     val pushAlerts by viewModel.pushAlertsEnabled.collectAsState()
+    val reminderHour by viewModel.reminderHour.collectAsState()
+    val reminderMinute by viewModel.reminderMinute.collectAsState()
+
+    var showTimePicker by remember { mutableStateOf(false) }
     var showWipeConfirm by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -38,10 +41,6 @@ fun SettingsScreen(
                 Switch(checked = isDarkMode, onCheckedChange = { viewModel.toggleDarkMode(it) })
             }
             Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Daily Digest Notifications", style = MaterialTheme.typography.titleMedium)
-                Switch(checked = dailyDigest, onCheckedChange = { viewModel.toggleDailyDigest(it) })
-            }
-            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Push Alerts", style = MaterialTheme.typography.titleMedium)
                 Switch(
                     checked = pushAlerts,
@@ -50,6 +49,13 @@ fun SettingsScreen(
                         if (it) requestNotificationPermission()
                     }
                 )
+            }
+            Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Global Reminder Time", style = MaterialTheme.typography.titleMedium)
+                TextButton(onClick = { showTimePicker = true }) {
+                    val timeString = "${reminderHour.toString().padStart(2, '0')}:${reminderMinute.toString().padStart(2, '0')}"
+                    Text(timeString, style = MaterialTheme.typography.titleMedium)
+                }
             }
 
             HorizontalDivider()
@@ -63,6 +69,23 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) { Text("Clear All Data") }
+        }
+
+        if (showTimePicker) {
+            val timePickerState = rememberTimePickerState(initialHour = reminderHour, initialMinute = reminderMinute)
+            AlertDialog(
+                onDismissRequest = { showTimePicker = false },
+                title = { Text("Select Daily Check-In Time") },
+                text = { TimePicker(state = timePickerState) },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.updateReminderTime(timePickerState.hour, timePickerState.minute)
+                        scheduleBackgroundTasks()
+                        showTimePicker = false
+                    }) { Text("Save") }
+                },
+                dismissButton = { TextButton(onClick = { showTimePicker = false }) { Text("Cancel") } }
+            )
         }
 
         if (showWipeConfirm) {

@@ -5,12 +5,13 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import androidx.core.net.toUri
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import androidx.core.content.edit
+import java.util.Calendar
 
 object AndroidActivityHooks {
     var launchContactPicker: (() -> Unit)? = null
@@ -60,11 +61,33 @@ actual fun requestNotificationPermission() {
 }
 
 actual fun scheduleBackgroundTasks() {
-    val workRequest = PeriodicWorkRequestBuilder<ReminderWorker>(15, TimeUnit.MINUTES).build()
+    val store = getKeyValueStore()
+    val hour = store.getInt("pref_reminder_hour", 9)
+    val minute = store.getInt("pref_reminder_minute", 0)
 
-    WorkManager.getInstance(appContext).enqueueUniquePeriodicWork(
-        "ReminderCheck",
-        ExistingPeriodicWorkPolicy.KEEP,
+    val now = Calendar.getInstance()
+    val target = Calendar.getInstance().apply {
+        set(Calendar.HOUR_OF_DAY, hour)
+        set(Calendar.MINUTE, minute)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0) // Explicitly zero out for exactness
+    }
+
+    // If the time has already passed today, schedule for tomorrow
+    if (target.before(now)) {
+        target.add(Calendar.DAY_OF_YEAR, 1)
+    }
+
+    val initialDelay = target.timeInMillis - now.timeInMillis
+
+    val workRequest = OneTimeWorkRequestBuilder<ReminderWorker>()
+        .setInitialDelay(initialDelay, TimeUnit.MILLISECONDS)
+        .build()
+
+    // Enqueue or update the exact daily scheduled task using REPLACE
+    WorkManager.getInstance(appContext).enqueueUniqueWork(
+        "ExactDailyReminder",
+        ExistingWorkPolicy.REPLACE,
         workRequest
     )
 }
@@ -74,6 +97,9 @@ class AndroidKeyValueStore(context: Context) : KeyValueStore {
 
     override fun getBoolean(key: String, defaultValue: Boolean): Boolean = prefs.getBoolean(key, defaultValue)
     override fun setBoolean(key: String, value: Boolean) { prefs.edit { putBoolean(key, value) } }
+
+    override fun getInt(key: String, defaultValue: Int): Int = prefs.getInt(key, defaultValue)
+    override fun setInt(key: String, value: Int) { prefs.edit { putInt(key, value) } }
 }
 
 actual fun getKeyValueStore(): KeyValueStore = AndroidKeyValueStore(appContext)

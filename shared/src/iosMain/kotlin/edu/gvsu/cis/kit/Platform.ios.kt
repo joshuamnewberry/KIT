@@ -57,10 +57,12 @@ class IOSKeyValueStore : KeyValueStore {
     override fun getBoolean(key: String, defaultValue: Boolean): Boolean {
         return if (defaults.objectForKey(key) != null) defaults.boolForKey(key) else defaultValue
     }
+    override fun setBoolean(key: String, value: Boolean) { defaults.setBool(value, forKey = key) }
 
-    override fun setBoolean(key: String, value: Boolean) {
-        defaults.setBool(value, forKey = key)
+    override fun getInt(key: String, defaultValue: Int): Int {
+        return if (defaults.objectForKey(key) != null) defaults.integerForKey(key).toInt() else defaultValue
     }
+    override fun setInt(key: String, value: Int) { defaults.setInteger(value.toLong(), forKey = key) }
 }
 
 actual fun getKeyValueStore(): KeyValueStore = IOSKeyValueStore()

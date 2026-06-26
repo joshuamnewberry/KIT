@@ -1,15 +1,17 @@
 package edu.gvsu.cis.kit
 
 import android.Manifest
-import android.R
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import edu.gvsu.cis.kit.data.AppDAO
@@ -23,6 +25,7 @@ class ReminderWorker(
 
     private val dao: AppDAO by inject()
 
+    @SuppressLint("MissingPermission")
     override suspend fun doWork(): Result {
         return try {
             val currentTime = System.currentTimeMillis()
@@ -31,24 +34,52 @@ class ReminderWorker(
             if (dueReminders.isNotEmpty()) {
                 createNotificationChannel()
 
-                dueReminders.forEach @androidx.annotation.RequiresPermission(android.Manifest.permission.POST_NOTIFICATIONS) { reminder ->
+                dueReminders.forEach { reminder ->
                     val contacts = dao.getContactsForReminder(reminder.id)
                     val contactNames = contacts.joinToString { it.name }
 
-                    val builder = NotificationCompat.Builder(applicationContext, "kit_reminders")
-                        .setSmallIcon(R.drawable.ic_dialog_info)
-                        .setContentTitle("Time to Check In!")
-                        .setContentText("Reach out to $contactNames: ${reminder.customMessage ?: "Scheduled reminder"}")
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    // Create an intent to launch the app
+                    val launchIntent = applicationContext.packageManager.getLaunchIntentForPackage(applicationContext.packageName)?.apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    }
 
-                    if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                    // Wrap it in a PendingIntent
+                    val pendingIntent = launchIntent?.let {
+                        PendingIntent.getActivity(
+                            applicationContext,
+                            reminder.id.hashCode(), // Use reminder ID as request code to keep intents distinct
+                            it,
+                            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                        )
+                    }
+
+                    // Format the text
+                    val messageTitle = reminder.customMessage?.takeIf { it.isNotBlank() } ?: "Check-in Reminder"
+
+                    val builder = NotificationCompat.Builder(applicationContext, "kit_reminders")
+                        .setSmallIcon(android.R.drawable.ic_dialog_info)
+                        .setContentTitle(messageTitle)
+                        .setContentText("For: $contactNames")
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setAutoCancel(true) // Clears the notification when tapped
+
+                    // Attach the tap action
+                    pendingIntent?.let { builder.setContentIntent(it) }
+
+                    if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
                         NotificationManagerCompat.from(applicationContext).notify(reminder.id.hashCode(), builder.build())
                     }
                 }
             }
+
+            // RE-SCHEDULE FOR TOMORROW
+            scheduleBackgroundTasks()
+
             Result.success()
         } catch (e: Exception) {
             e.printStackTrace()
+            // Try to reschedule even on failure so the loop doesn't break permanently
+            scheduleBackgroundTasks()
             Result.retry()
         }
     }
