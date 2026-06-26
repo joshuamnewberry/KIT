@@ -140,7 +140,6 @@ class KITRepositoryTest {
         repository.addImportantDate(
             contactId = "contact-1",
             title = "Birthday",
-            type = ImportantDateType.BIRTHDAY,
             dateMillis = 123456789L
         )
 
@@ -148,7 +147,6 @@ class KITRepositoryTest {
 
         assertEquals(1, dates.size)
         assertEquals("Birthday", dates[0].title)
-        assertEquals(ImportantDateType.BIRTHDAY.name, dates[0].type)
         assertEquals(123456789L, dates[0].dateMillis)
     }
 
