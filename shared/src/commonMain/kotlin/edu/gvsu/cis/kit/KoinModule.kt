@@ -18,7 +18,6 @@ fun appModule(dao: AppDAO) = module {
     factory { RemindersViewModel(get()) }
 }
 
-// Updated to accept context, which will be passed to platform-specific initializers
 fun initKoin(dao: AppDAO, context: Any? = null) {
     try {
         startKoin {

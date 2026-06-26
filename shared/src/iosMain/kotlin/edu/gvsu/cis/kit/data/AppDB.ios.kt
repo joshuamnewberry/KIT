@@ -1,4 +1,4 @@
-package edu.gvsu.cis.kit
+package edu.gvsu.cis.kit.data
 
 import androidx.room.Room
 import androidx.room.RoomDatabase

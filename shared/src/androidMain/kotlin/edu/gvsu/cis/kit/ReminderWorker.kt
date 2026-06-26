@@ -1,5 +1,7 @@
 package edu.gvsu.cis.kit
 
+import android.Manifest
+import android.R
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -29,17 +31,17 @@ class ReminderWorker(
             if (dueReminders.isNotEmpty()) {
                 createNotificationChannel()
 
-                dueReminders.forEach { reminder ->
+                dueReminders.forEach @androidx.annotation.RequiresPermission(android.Manifest.permission.POST_NOTIFICATIONS) { reminder ->
                     val contacts = dao.getContactsForReminder(reminder.id)
                     val contactNames = contacts.joinToString { it.name }
 
                     val builder = NotificationCompat.Builder(applicationContext, "kit_reminders")
-                        .setSmallIcon(android.R.drawable.ic_dialog_info)
+                        .setSmallIcon(R.drawable.ic_dialog_info)
                         .setContentTitle("Time to Check In!")
                         .setContentText("Reach out to $contactNames: ${reminder.customMessage ?: "Scheduled reminder"}")
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
 
-                    if (ActivityCompat.checkSelfPermission(applicationContext, android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
                         NotificationManagerCompat.from(applicationContext).notify(reminder.id.hashCode(), builder.build())
                     }
                 }

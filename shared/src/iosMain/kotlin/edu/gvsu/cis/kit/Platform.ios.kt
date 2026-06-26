@@ -31,7 +31,7 @@ actual fun triggerCallIntent(phoneNumber: String) {
 
 actual fun triggerSmsIntent(phoneNumber: String) {
     val url = NSURL(string = "sms:$phoneNumber")
-    if (url != null) UIApplication.sharedApplication.openURL(url)
+    UIApplication.sharedApplication.openURL(url)
 }
 
 actual fun requestContactImport() {

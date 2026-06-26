@@ -26,7 +26,6 @@ class MainActivity : ComponentActivity(), KoinComponent {
     private val contactPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val contactUri = result.data?.data ?: return@registerForActivityResult
-
             // We request only the columns we need from the implicitly permitted URI
             val projection = arrayOf(
                 ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,

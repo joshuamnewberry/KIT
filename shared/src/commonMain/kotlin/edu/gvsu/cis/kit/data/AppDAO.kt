@@ -45,7 +45,6 @@ interface AppDAO {
     @Query("SELECT * FROM check_in_reminders ORDER BY nextReminderDate ASC")
     suspend fun getAllReminders(): List<CheckInReminder>
 
-    // FIXED: Selecting explicit table columns to avoid cross-ref mismatch warnings
     @Query("""
         SELECT check_in_reminders.* FROM check_in_reminders 
         INNER JOIN reminder_contact_cross_ref ON check_in_reminders.id = reminder_contact_cross_ref.reminderId 
@@ -65,7 +64,6 @@ interface AppDAO {
     @Delete
     suspend fun deleteEvent(event: Event)
 
-    // FIXED: Selecting explicit table columns to avoid cross-ref mismatch warnings
     @Query("""
         SELECT events.* FROM events 
         INNER JOIN event_contact_cross_ref ON events.id = event_contact_cross_ref.eventId 

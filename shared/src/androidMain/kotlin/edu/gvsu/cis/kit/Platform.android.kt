@@ -4,15 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
-import android.provider.Settings
 import androidx.core.net.toUri
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import androidx.core.content.edit
 
-// NEW: Registry to decouple the app module (MainActivity) from the shared library module
 object AndroidActivityHooks {
     var launchContactPicker: (() -> Unit)? = null
     var requestNotificationPermission: (() -> Unit)? = null
@@ -51,13 +50,11 @@ actual fun triggerSmsIntent(phoneNumber: String) {
 }
 
 actual fun requestContactImport() {
-    // Triggers the lambda set by MainActivity
     AndroidActivityHooks.launchContactPicker?.invoke()
 }
 
 actual fun requestNotificationPermission() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        // Triggers the lambda set by MainActivity
         AndroidActivityHooks.requestNotificationPermission?.invoke()
     }
 }
@@ -76,7 +73,7 @@ class AndroidKeyValueStore(context: Context) : KeyValueStore {
     private val prefs: SharedPreferences = context.getSharedPreferences("kit_prefs", Context.MODE_PRIVATE)
 
     override fun getBoolean(key: String, defaultValue: Boolean): Boolean = prefs.getBoolean(key, defaultValue)
-    override fun setBoolean(key: String, value: Boolean) { prefs.edit().putBoolean(key, value).apply() }
+    override fun setBoolean(key: String, value: Boolean) { prefs.edit { putBoolean(key, value) } }
 }
 
 actual fun getKeyValueStore(): KeyValueStore = AndroidKeyValueStore(appContext)

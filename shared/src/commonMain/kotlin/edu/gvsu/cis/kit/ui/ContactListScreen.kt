@@ -65,7 +65,6 @@ fun ContactListScreen(
                                 Icon(Icons.Default.Person, null, modifier = Modifier.padding(12.dp))
                             }
 
-                            // FIXED: Arranged to center correctly when relationship is blank
                             Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp), verticalArrangement = Arrangement.Center) {
                                 Text(text = contact.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 if (!contact.relationshipType.isNullOrBlank()) {
